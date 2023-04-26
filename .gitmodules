@@ -7,3 +7,6 @@
 [submodule "eurorack"]
 	path = eurorack
 	url = https://github.com/pichenettes/eurorack
+[submodule "Terrarium"]
+	path = Terrarium
+	url = https://github.com/PedalPCB/Terrarium
