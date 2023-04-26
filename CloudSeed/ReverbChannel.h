@@ -34,10 +34,10 @@ namespace CloudSeed
 	{
 	private:
                 // IMPORTANT: CHANGE "TotalLineCount" FOR DAISY SEED HARDWARE
-                //            Original CloudSeed plugin uses 8 Delay Lines
+                //            Original CloudSeed plugin uses 8 Delay Lines, or 12 delay lines?
                 //            DaisyCloudSeed adjusted to 2 to use with Stereo on DaisyPatch hardware (otherwise causes buffer underruns for most presets (except ChorusDelay)
                 //            4/26/2023 GuitarML fork of DaisyCloudSeed uses 4, able to increase for Mono Only Terrarium platform (mono guitar pedal using Daisy Seed)
-		static const int TotalLineCount = 4;  
+		static const int TotalLineCount = 5;  
 
 		map<Parameter, float> parameters;
 		int samplerate;
@@ -198,7 +198,8 @@ namespace CloudSeed
 				break;
 
 			case Parameter::LineCount:
-				//lineCount = (int)value;
+				lineCount = (int)value; // Originally commented out
+                //perLineGain = GetPerLineGain();  // In original Cloud Seed
 				break;
 			case Parameter::LineDelay:
 				UpdateLines();

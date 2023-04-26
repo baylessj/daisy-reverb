@@ -19,7 +19,7 @@ DaisyPetal hw;
 bool      bypass;
 int       c;
 Led led1, led2;
-float pwet_dry_mix_value, ptime_value, pdiffusion_value;
+float pwet_dry_mix_value, ptime_value, pdiffusion_value, pnumDelayLines;
 
 CloudSeed::ReverbController* reverb = 0;
 
@@ -104,6 +104,26 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
       reverb->SetParameter(::Parameter::LateDiffusionFeedback, diffusion_value);
       pdiffusion_value = diffusion_value;
     }
+
+
+
+    // Delay Line Switches
+    //     - The .Pressed() function below counts an 'ON' switch as pressed.
+    //     - Total number of switches on sets how many delay lines are activated (0 - 4)
+    int switches[4] = {Terrarium::SWITCH_1, Terrarium::SWITCH_2, Terrarium::SWITCH_3, Terrarium::SWITCH_4}; // Can this be moved elsewhere?
+    float numDelayLines = 1.0;
+    for(int i=0; i<4; i++) {
+        //delayOn[i] = hw.switches[switches[i]].Pressed();
+        if (hw.switches[switches[i]].Pressed()) {
+            numDelayLines += 1.0;
+        }
+    }
+    if (pnumDelayLines != numDelayLines) {
+        //reverb->ClearBuffers();  //TODO is this needed?
+        reverb->SetParameter(::Parameter::LineCount, numDelayLines);
+        pnumDelayLines = numDelayLines;
+    }
+
     
     //float ins[2*48];
     //float outs[2*48];
@@ -170,6 +190,7 @@ int main(void)
     pwet_dry_mix_value = 0.0;
     ptime_value = 0.0;
     pdiffusion_value = 0.0;
+    pnumDelayLines = 4.0; // Set to max number of delay lines initially
 
     // Init the LEDs and set activate bypass
     led1.Init(hw.seed.GetPin(Terrarium::LED_1),false);
