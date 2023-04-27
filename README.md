@@ -8,7 +8,7 @@ This repo also includes a modified version of CloudyReverb for Terrarium. It is 
 the reverb algorithm from [eurorack](https://github.com/pichenettes/eurorack/tree/master).
 
 ## Getting started
-The new code for Terrarium has been added to '''DaisyCloudSeed/petal'''.
+The new code for Terrarium has been added to ```DaisyCloudSeed/petal```.
 Build the daisy libraries and CloudSeed with (after installing the Daisy Toolchain):
 ```
 ./rebuild_libs.sh
