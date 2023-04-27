@@ -24,7 +24,7 @@ bool      bypass;
 int       c;
 Led led1, led2;
 
-// Set "previous" p values
+// Initialize "previous" p values
 float pdryout_value, pearlyout_value, pmainout_value, ptime_value, pdiffusion_value, pnumDelayLines, ptap_decay_value;
 
 CloudSeed::ReverbController* reverb = 0;
@@ -171,7 +171,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         reverb->Process(ins, outs, 48);
         for (size_t i = 0; i < size; i++)
         {  
-            out[0][i] = outs[i];
+            out[0][i] = outs[i] * 1.2;  // Slight overall volume boost at 1.2
         }
     } else {
         for (size_t i = 0; i < size; i++)
