@@ -2,12 +2,13 @@
 Cloud Seed is an open source algorithmic reverb plugin under the MIT license, which can be found at [ValdemarOrn/CloudSeed](https://github.com/ValdemarOrn/CloudSeed).
 DaisyCloudSeed is a port to the Daisy environment for running on a Daisy Patch unit. This code (GuitarML's fork) further modifies DaisyCloudSeed
 for use on the Terrarium guitar pedal. The processing has been changed to mono (from stereo), which allows up to 5 delay lines,
-and fills out all of the Terrarium's controls.
+and fills out all of the Terrarium's controls. 
 
 This repo also includes a modified version of CloudyReverb for Terrarium. It is a lighter reverb than CloudSeed (in terms of memory/processing requirements), and uses
 the reverb algorithm from [eurorack](https://github.com/pichenettes/eurorack/tree/master).
 
 ## Getting started
+The new code for Terrarium has been added to '''DaisyCloudSeed/petal'''.
 Build the daisy libraries and CloudSeed with (after installing the Daisy Toolchain):
 ```
 ./rebuild_libs.sh
