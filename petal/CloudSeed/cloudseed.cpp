@@ -1,3 +1,8 @@
+// Modified version of DaisyCloudSeed by Keith Bloemer.
+// Intended for the Terrarrium guitar pedal hardware.
+// Code has been modified for mono processing (originally stereo) to 
+// allow up to 5 delay lines on the Daisy Seed.
+
 #include "daisy_petal.h"
 #include "daisysp.h"
 #include "terrarium.h"
@@ -8,23 +13,24 @@
 #include "../../CloudSeed/AudioLib/ValueTables.h"
 #include "../../CloudSeed/AudioLib/MathDefs.h"
 
-
 using namespace daisy;
 using namespace daisysp;
 using namespace terrarium;  // This is important for mapping the correct controls to the Daisy Seed on Terrarium PCB
 
 // Declare a local daisy_petal for hardware access
 DaisyPetal hw;
-::daisy::Parameter wetDryMix, inLevel, time, diffusion, tapDecay;
+::daisy::Parameter dryOut, earlyOut, mainOut, time, diffusion, tapDecay;
 bool      bypass;
 int       c;
 Led led1, led2;
-float pwet_dry_mix_value, ptime_value, pdiffusion_value, pnumDelayLines, ptap_decay_value;
+
+// Set "previous" p values
+float pdryout_value, pearlyout_value, pmainout_value, ptime_value, pdiffusion_value, pnumDelayLines, ptap_decay_value;
 
 CloudSeed::ReverbController* reverb = 0;
-
   
-
+// This is used in the modified CloudSeed code for allocating 
+// delay line memory to SDRAM (64MB available on Daisy)
 #define CUSTOM_POOL_SIZE (48*1024*1024)
 DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
 size_t pool_index = 0;
@@ -66,7 +72,7 @@ void cyclePreset()
     } else if ( c == 7 ) {
             reverb->initFactory90sAreBack();
     //} else if ( c == 8 ) {
-    //        reverb->initFactoryThroughTheLookingGlass(); // Only preset that sounds scratchy (using 4 delay lines, mono) causes buffer underruns
+    //        reverb->initFactoryThroughTheLookingGlass(); // Only preset that sounds scratchy (using 4-5 delay lines, mono) causes buffer underruns
     //                                                       //   TODO Try slight modifications to this preset to allow to work
     }
 }
@@ -83,16 +89,29 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     led1.Update();
     led2.Update();
 
-    float drylevel = inLevel.Process();
-    float wet_dry_mix_value = wetDryMix.Process();
+    float dryout_value = dryOut.Process();
+    float earlyout_value = earlyOut.Process();
+    float mainout_value = mainOut.Process();
     float time_value = time.Process();
     float diffusion_value = diffusion.Process();
     float tap_decay_value = tapDecay.Process();
 
-    if ((pwet_dry_mix_value < wet_dry_mix_value) || ( pwet_dry_mix_value > wet_dry_mix_value))
+    if ((pdryout_value < dryout_value) || ( pdryout_value> dryout_value))
     {
-      reverb->SetParameter(::Parameter::MainOut, wet_dry_mix_value);
-      pwet_dry_mix_value = wet_dry_mix_value;
+      reverb->SetParameter(::Parameter::DryOut, dryout_value);
+      pdryout_value = dryout_value;
+    }
+
+    if ((pearlyout_value < earlyout_value) || ( pearlyout_value> earlyout_value))
+    {
+      reverb->SetParameter(::Parameter::EarlyOut, earlyout_value);
+      pearlyout_value = earlyout_value;
+    }
+
+    if ((pmainout_value < mainout_value) || ( pmainout_value > mainout_value))
+    {
+      reverb->SetParameter(::Parameter::MainOut, mainout_value);
+      pmainout_value = mainout_value;
     }
 
     if ((ptime_value < time_value) || ( ptime_value > time_value))
@@ -111,20 +130,13 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
       reverb->SetParameter(::Parameter::TapDecay, tap_decay_value);
       ptap_decay_value = tap_decay_value;
     }
-    //if ((pline_delay_value < line_delay_value) || ( pline_delay_value > line_delay_value))
-    //{
-    //  reverb->SetParameter(::Parameter::LineDelay, line_delay_value);
-    //  pline_delay_value = line_delay_value;
-    //}
-
 
     // Delay Line Switches
     //     - The .Pressed() function below counts an 'ON' switch as pressed.
-    //     - Total number of switches on sets how many delay lines are activated (0 - 4)
+    //     - Total number of switches on sets how many delay lines are activated (1 - 5)
     int switches[4] = {Terrarium::SWITCH_1, Terrarium::SWITCH_2, Terrarium::SWITCH_3, Terrarium::SWITCH_4}; // Can this be moved elsewhere?
     float numDelayLines = 1.0;
     for(int i=0; i<4; i++) {
-        //delayOn[i] = hw.switches[switches[i]].Pressed();
         if (hw.switches[switches[i]].Pressed()) {
             numDelayLines += 1.0;
         }
@@ -135,18 +147,11 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         pnumDelayLines = numDelayLines;
     }
 
-    
-    //float ins[2*48];
-    //float outs[2*48];
     float ins[48];
     float outs[48];
     for (size_t i = 0; i < size; i++)
     {
-        // Read Inputs (only left channel used)
-        ins[i] = in[0][i]*drylevel;
-
-        //ins[2*i] = in[0][i]*drylevel;
-        //ins[2*i+1]= in[1][i]*drylevel;  // Right Channel
+        ins[i] = in[0][i];
     }
 
     // (De-)Activate bypass and toggle LED when left footswitch is pressed
@@ -167,7 +172,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         for (size_t i = 0; i < size; i++)
         {  
             out[0][i] = outs[i];
-            //out[1][i] = outs[i*2+1];
         }
     } else {
         for (size_t i = 0; i < size; i++)
@@ -194,17 +198,19 @@ int main(void)
 
     //hw.SetAudioBlockSize(4);
 
-    wetDryMix.Init(hw.knob[Terrarium::KNOB_1], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-    inLevel.Init(hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-    time.Init(hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
+    dryOut.Init(hw.knob[Terrarium::KNOB_1], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
+    earlyOut.Init(hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
+    mainOut.Init(hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
     diffusion.Init(hw.knob[Terrarium::KNOB_4], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
     tapDecay.Init(hw.knob[Terrarium::KNOB_5], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
-    //volume.Init(hw.knob[Terrarium::KNOB_6], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
-    pwet_dry_mix_value = 0.0;
+    time.Init(hw.knob[Terrarium::KNOB_6], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
+
+    pdryout_value = 0.0;
+    pearlyout_value = 0.0;
+    pmainout_value = 0.0;
     ptime_value = 0.0;
     pdiffusion_value = 0.0;
     ptap_decay_value = 0.0;
-    //pline_delay_value = 0.0;
     pnumDelayLines = 5.0; // Set to max number of delay lines initially
 
     // Init the LEDs and set activate bypass
