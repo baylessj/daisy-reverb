@@ -15,11 +15,11 @@ using namespace terrarium;  // This is important for mapping the correct control
 
 // Declare a local daisy_petal for hardware access
 DaisyPetal hw;
-::daisy::Parameter wetDryMix, inLevel, time, diffusion;
+::daisy::Parameter wetDryMix, inLevel, time, diffusion, tapDecay;
 bool      bypass;
 int       c;
 Led led1, led2;
-float pwet_dry_mix_value, ptime_value, pdiffusion_value, pnumDelayLines;
+float pwet_dry_mix_value, ptime_value, pdiffusion_value, pnumDelayLines, ptap_decay_value;
 
 CloudSeed::ReverbController* reverb = 0;
 
@@ -43,7 +43,7 @@ void* custom_pool_allocate(size_t size)
 void cyclePreset()
 {
     c += 1;
-    if ( c > 8 ) {
+    if ( c > 7 ) {
         c = 0;
     }
 
@@ -65,9 +65,9 @@ void cyclePreset()
             reverb->initFactorySmallRoom();
     } else if ( c == 7 ) {
             reverb->initFactory90sAreBack();
-    } else if ( c == 8 ) {
-            reverb->initFactoryThroughTheLookingGlass(); // Only preset that sounds scratchy (using 4 delay lines, mono) causes buffer underruns
-                                                           //   TODO Try slight modifications to this preset to allow to work
+    //} else if ( c == 8 ) {
+    //        reverb->initFactoryThroughTheLookingGlass(); // Only preset that sounds scratchy (using 4 delay lines, mono) causes buffer underruns
+    //                                                       //   TODO Try slight modifications to this preset to allow to work
     }
 }
 
@@ -87,6 +87,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     float wet_dry_mix_value = wetDryMix.Process();
     float time_value = time.Process();
     float diffusion_value = diffusion.Process();
+    float tap_decay_value = tapDecay.Process();
 
     if ((pwet_dry_mix_value < wet_dry_mix_value) || ( pwet_dry_mix_value > wet_dry_mix_value))
     {
@@ -105,6 +106,16 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
       pdiffusion_value = diffusion_value;
     }
 
+    if ((ptap_decay_value < tap_decay_value) || ( ptap_decay_value > tap_decay_value))
+    {
+      reverb->SetParameter(::Parameter::TapDecay, tap_decay_value);
+      ptap_decay_value = tap_decay_value;
+    }
+    //if ((pline_delay_value < line_delay_value) || ( pline_delay_value > line_delay_value))
+    //{
+    //  reverb->SetParameter(::Parameter::LineDelay, line_delay_value);
+    //  pline_delay_value = line_delay_value;
+    //}
 
 
     // Delay Line Switches
@@ -187,10 +198,14 @@ int main(void)
     inLevel.Init(hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
     time.Init(hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
     diffusion.Init(hw.knob[Terrarium::KNOB_4], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
+    tapDecay.Init(hw.knob[Terrarium::KNOB_5], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
+    //volume.Init(hw.knob[Terrarium::KNOB_6], 0.0f, 1.0f, ::daisy::Parameter::LINEAR); 
     pwet_dry_mix_value = 0.0;
     ptime_value = 0.0;
     pdiffusion_value = 0.0;
-    pnumDelayLines = 4.0; // Set to max number of delay lines initially
+    ptap_decay_value = 0.0;
+    //pline_delay_value = 0.0;
+    pnumDelayLines = 5.0; // Set to max number of delay lines initially
 
     // Init the LEDs and set activate bypass
     led1.Init(hw.seed.GetPin(Terrarium::LED_1),false);
