@@ -4,6 +4,8 @@ DaisyCloudSeed is a port to the Daisy environment for running on a Daisy Patch u
 for use on the Terrarium guitar pedal. The processing has been changed to mono (from stereo), which allows up to 5 delay lines,
 and fills out all of the Terrarium's controls. 
 
+Watch the video demo on [YouTube](https://youtu.be/j-SGRWxBjz0)
+
 ![app](https://github.com/GuitarML/DaisyCloudSeed/blob/master/petal/pedal.jpg)
 
 This repo also includes a modified version of CloudyReverb for Terrarium. It is a lighter reverb than CloudSeed (in terms of memory/processing requirements), and uses
