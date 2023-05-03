@@ -18,11 +18,12 @@ using namespace terrarium;  // This is important for mapping the correct control
 
 // Declare a local daisy_petal for hardware access
 DaisyPetal hw;
-Parameter wetDryMix, inLevel, time, diffusion;
+Parameter wetDryMix, inLevel, time, diffusion, lowPass;
 bool      bypass;
 
 Led led1, led2;
 
+// TODO: Figure out if this SDRAM is being used in cloudyreverb, or only for CloudSeed, not seeing any references to it here
 #define CUSTOM_POOL_SIZE (48*1024*1024)
 DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
 size_t pool_index = 0;
@@ -56,7 +57,14 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     float in_level_value = inLevel.Process();
     float time_value = time.Process();
     float diffusion_value = diffusion.Process();
-    
+    float lp_value = lowPass.Process();
+
+    // TODO This was inside of the sample loop, was there a good reason for that? moved outside (may need parameter smoothing?)
+    clouds_reverb.set_amount(wet_dry_mix_value);
+    clouds_reverb.set_diffusion(diffusion_value);
+    clouds_reverb.set_time(time_value);           // 0.5f + (0.49f * patch_position)); <-better control over upper range
+    clouds_reverb.set_input_gain(in_level_value);
+    clouds_reverb.set_lp(lp_value);                   // : 0.6f);  
 
     float ins_left[48];
     float ins_right[48];
@@ -92,12 +100,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         }
         else
         {
-            // TODO Figure out value ranges expected (0 to 1.0?), call set functions only when value changes
-            clouds_reverb.set_amount(wet_dry_mix_value);
-            clouds_reverb.set_diffusion(diffusion_value);
-            clouds_reverb.set_time(0.5 + (0.49 * time_value));           // 0.5f + (0.49f * patch_position));
-            clouds_reverb.set_input_gain(in_level_value);
-            clouds_reverb.set_lp(0.3f);                   // : 0.6f);  // TODO add control here
 
             clouds_reverb.Process(&ins_left[i], &ins_right[i], 1);  // TODO "&" needed?
     
@@ -126,7 +128,7 @@ int main(void)
     inLevel.Init(hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f, Parameter::LINEAR);
     time.Init(hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f, Parameter::LINEAR); 
     diffusion.Init(hw.knob[Terrarium::KNOB_4], 0.0f, 1.0f, Parameter::LINEAR); 
-
+    lowPass.Init(hw.knob[Terrarium::KNOB_5], 0.0f, 1.0f, Parameter::LINEAR); 
 
     // Init the LEDs and set activate bypass
     led1.Init(hw.seed.GetPin(Terrarium::LED_1),false);
