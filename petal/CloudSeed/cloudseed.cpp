@@ -5,13 +5,13 @@
 
 #include "daisy_petal.h"
 #include "daisysp.h"
-#include "terrarium.h"
 
 #include "../../CloudSeed/AudioLib/MathDefs.h"
 #include "../../CloudSeed/AudioLib/ValueTables.h"
 #include "../../CloudSeed/Default.h"
 #include "../../CloudSeed/FastSin.h"
 #include "../../CloudSeed/ReverbController.h"
+#include "footswitchcontroller.hpp"
 
 using namespace daisy;
 using namespace daisysp;
@@ -22,16 +22,16 @@ static const char BATCH_SIZE = 4;
 
 // Declare a local daisy_petal for hardware access
 DaisyPetal hw;
+FootswitchController footswitchController(&hw);
 ::daisy::Parameter dryOut, earlyOut, mainOut, time, diffusion, tapDecay;
-bool bypass;
 int c;
 Led led1, led2;
 
 // Initialize "previous" p values
 float pdryout_value, pearlyout_value, pmainout_value, ptime_value,
-    pdiffusion_value, pnumDelayLines, ptap_decay_value;
+  pdiffusion_value, pnumDelayLines, ptap_decay_value;
 
-CloudSeed::ReverbController *reverb = NULL;
+CloudSeed::ReverbController* reverb = NULL;
 
 // This is used in the modified CloudSeed code for allocating
 // delay line memory to SDRAM (64MB available on Daisy)
@@ -39,11 +39,11 @@ CloudSeed::ReverbController *reverb = NULL;
 DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
 size_t pool_index = 0;
 int allocation_count = 0;
-void *custom_pool_allocate(size_t size) {
+void* custom_pool_allocate(size_t size) {
   if (pool_index + size >= CUSTOM_POOL_SIZE) {
     return 0;
   }
-  void *ptr = &custom_pool[pool_index];
+  void* ptr = &custom_pool[pool_index];
   pool_index += size;
   return ptr;
 }
@@ -86,9 +86,6 @@ void cyclePreset() {
 
 // TODO: update the controls here too, don't just read the values
 static void processControls() {
-  hw.ProcessAnalogControls();
-  hw.ProcessDigitalControls();
-
   float dryout_value = dryOut.Process();
   float earlyout_value = earlyOut.Process();
   float mainout_value = mainOut.Process();
@@ -132,7 +129,8 @@ static void processControls() {
   //     - The .Pressed() function below counts an 'ON' switch as pressed.
   //     - Total number of switches on sets how many delay lines are activated
   //     (1 - 5)
-  int switches[4] = {Terrarium::SWITCH_1, Terrarium::SWITCH_2,
+  int switches[4] = {Terrarium::SWITCH_1,
+                     Terrarium::SWITCH_2,
                      Terrarium::SWITCH_3,
                      Terrarium::SWITCH_4}; // Can this be moved elsewhere?
   float numDelayLines = 1.0;
@@ -148,33 +146,24 @@ static void processControls() {
   }
 }
 
-static void processFootSwitches() {
-  // (De-)Activate bypass and toggle LED when left footswitch is pressed
-  if (hw.switches[Terrarium::FOOTSWITCH_1].RisingEdge()) {
-    bypass = !bypass;
-    led1.Set(bypass ? 0.0f : 1.0f);
-  }
-
-  // Cycle available models
-  if (hw.switches[Terrarium::FOOTSWITCH_2].RisingEdge()) {
-    cyclePreset();
-  }
-}
-
 // This runs at a fixed rate, to prepare audio samples
 static void AudioCallback(AudioHandle::InputBuffer in,
-                          AudioHandle::OutputBuffer out, size_t size) {
+                          AudioHandle::OutputBuffer out,
+                          size_t size) {
+  hw.ProcessAnalogControls();
+  hw.ProcessDigitalControls();
+
   processControls();
 
   led1.Update();
   led2.Update();
 
-  processFootSwitches();
+  auto fswInfo = footswitchController.tick();
 
   float mono_input[BATCH_SIZE];
   memcpy(mono_input, in[0], BATCH_SIZE);
 
-  if (!bypass) {
+  if (!fswInfo.bypassed) {
     reverb->Process(mono_input, out[0], BATCH_SIZE);
     // for (size_t i = 0; i < size; i++)
     // {
@@ -201,16 +190,16 @@ int main(void) {
 
   // hw.SetAudioBlockSize(4);
 
-  dryOut.Init(hw.knob[Terrarium::KNOB_1], 0.0f, 1.0f,
-              ::daisy::Parameter::LINEAR);
-  earlyOut.Init(hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f,
-                ::daisy::Parameter::LINEAR);
-  mainOut.Init(hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f,
-               ::daisy::Parameter::LINEAR);
-  diffusion.Init(hw.knob[Terrarium::KNOB_4], 0.0f, 1.0f,
-                 ::daisy::Parameter::LINEAR);
-  tapDecay.Init(hw.knob[Terrarium::KNOB_5], 0.0f, 1.0f,
-                ::daisy::Parameter::LINEAR);
+  dryOut.Init(
+    hw.knob[Terrarium::KNOB_1], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
+  earlyOut.Init(
+    hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
+  mainOut.Init(
+    hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
+  diffusion.Init(
+    hw.knob[Terrarium::KNOB_4], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
+  tapDecay.Init(
+    hw.knob[Terrarium::KNOB_5], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
   time.Init(hw.knob[Terrarium::KNOB_6], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
 
   pdryout_value = 0.0;
@@ -224,7 +213,6 @@ int main(void) {
   // Init the LEDs and set activate bypass
   led1.Init(hw.seed.GetPin(Terrarium::LED_1), false);
   led1.Update();
-  bypass = true;
 
   led2.Init(hw.seed.GetPin(Terrarium::LED_2), false);
   led2.Update();
