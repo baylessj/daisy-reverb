@@ -27,7 +27,7 @@ Led led1, led2;
 // Initialize "previous" p values
 float pdryout_value, pearlyout_value, pmainout_value, ptime_value, pdiffusion_value, pnumDelayLines, ptap_decay_value;
 
-CloudSeed::ReverbController* reverb = 0;
+CloudSeed::ReverbController* reverb = NULL;
   
 // This is used in the modified CloudSeed code for allocating 
 // delay line memory to SDRAM (64MB available on Daisy)
