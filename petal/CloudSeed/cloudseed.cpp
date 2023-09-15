@@ -12,6 +12,7 @@
 #include "../../CloudSeed/FastSin.h"
 #include "../../CloudSeed/ReverbController.h"
 #include "footswitchcontroller.hpp"
+#include "ledcontroller.hpp"
 
 using namespace daisy;
 using namespace daisysp;
@@ -22,10 +23,12 @@ static const char BATCH_SIZE = 4;
 
 // Declare a local daisy_petal for hardware access
 DaisyPetal hw;
-FootswitchController footswitchController(&hw);
+FootswitchController footswitch_controller(&hw);
+LedController* led_controller = nullptr;
+std::uint8_t preset_number = 0;
+
 ::daisy::Parameter dryOut, earlyOut, mainOut, time, diffusion, tapDecay;
 int c;
-Led led1, led2;
 
 // Initialize "previous" p values
 float pdryout_value, pearlyout_value, pmainout_value, ptime_value,
@@ -155,15 +158,19 @@ static void AudioCallback(AudioHandle::InputBuffer in,
 
   processControls();
 
-  led1.Update();
-  led2.Update();
+  auto fsw_info = footswitch_controller.tick();
 
-  auto fswInfo = footswitchController.tick();
+  if (fsw_info.advancePreset) {
+    // TODO: set a limit to this and have it roll over
+    preset_number++;
+  }
+
+  led_controller->tick(fsw_info.bypassed, preset_number);
 
   float mono_input[BATCH_SIZE];
   memcpy(mono_input, in[0], BATCH_SIZE);
 
-  if (!fswInfo.bypassed) {
+  if (!fsw_info.bypassed) {
     reverb->Process(mono_input, out[0], BATCH_SIZE);
     // for (size_t i = 0; i < size; i++)
     // {
@@ -180,6 +187,8 @@ int main(void) {
   hw.Init();
   samplerate = hw.AudioSampleRate();
   c = 0;
+
+  led_controller = &LedController(&hw, samplerate / BATCH_SIZE);
 
   AudioLib::ValueTables::Init();
   CloudSeed::FastSin::Init();
@@ -209,13 +218,6 @@ int main(void) {
   pdiffusion_value = 0.0;
   ptap_decay_value = 0.0;
   pnumDelayLines = 5.0; // Set to max number of delay lines initially
-
-  // Init the LEDs and set activate bypass
-  led1.Init(hw.seed.GetPin(Terrarium::LED_1), false);
-  led1.Update();
-
-  led2.Init(hw.seed.GetPin(Terrarium::LED_2), false);
-  led2.Update();
 
   hw.StartAdc();
   hw.StartAudio(AudioCallback);
