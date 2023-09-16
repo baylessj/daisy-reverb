@@ -9,7 +9,7 @@
 
 // The duration that the preset LED will be held, high or low, when flashing.
 // In milliseconds.
-static const std::uint8_t LED_FLASH_DURATION = 1000;
+#define LED_FLASH_DURATION 1000
 
 class LedController {
   public:
@@ -18,8 +18,10 @@ class LedController {
    * update_interval: the time in milliseconds between calls of the `tick()`
    *                  function.
    */
-  LedController(daisy::DaisyPetal* hw, std::uint8_t update_interval)
-    : _update_interval(update_interval) {
+  LedController(std::uint8_t update_interval)
+    : _update_interval(update_interval) {}
+
+  void init(daisy::DaisyPetal* hw) {
     _left.Init(hw->seed.GetPin(terrarium::Terrarium::LED_1), false);
     _right.Init(hw->seed.GetPin(terrarium::Terrarium::LED_2), false);
   }
@@ -73,7 +75,7 @@ class LedController {
     _isRightOn = on;
   }
 
-  std::uint8_t _this_state_duration(int preset_number) {
+  std::uint16_t _this_state_duration(int preset_number) {
     if (_num_flashes_this_cycle == (preset_number + 1) && !_isRightOn) {
       // Keep the LED off for 4 times the normal duration when between flash
       // cycles to designate the end of the cycle
@@ -83,8 +85,8 @@ class LedController {
   }
 
   daisy::Led _left, _right;
-  std::uint8_t _update_interval;
+  std::uint16_t _update_interval;
   bool _isRightOn = false;
-  std::uint8_t _led_tick_count = 0;
+  std::uint16_t _led_tick_count = 0;
   std::uint8_t _num_flashes_this_cycle = 0;
 };

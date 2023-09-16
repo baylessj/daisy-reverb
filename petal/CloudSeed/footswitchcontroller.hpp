@@ -12,11 +12,11 @@
 
 // How long the left switch can be held before it is considered a Momentary
 // Bypass, in milliseconds
-static const std::uint8_t MOMENTARY_BYPASS_TIME = 1000;
+#define MOMENTARY_BYPASS_TIME 1000
 
 // How long the right switch can be held before it is considered a hold for
 // the Control Selection, and not a tap. In milliseconds.
-static const std::uint8_t CONTROL_SELECTION_TIME = 1000;
+#define CONTROL_SELECTION_TIME 1000
 
 struct FootswitchControllerInfo {
   FootswitchControllerInfo(bool ibypassed,

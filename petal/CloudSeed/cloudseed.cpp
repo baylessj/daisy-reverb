@@ -13,18 +13,19 @@
 #include "../../CloudSeed/ReverbController.h"
 #include "footswitchcontroller.hpp"
 #include "ledcontroller.hpp"
+#include "toggleswitchcontroller.hpp"
 
 using namespace daisy;
 using namespace daisysp;
-using namespace terrarium; // This is important for mapping the correct controls
-                           // to the Daisy Seed on Terrarium PCB
+using namespace terrarium;
 
-static const char BATCH_SIZE = 4;
+#define MCU_CLOCK_RATE 48000 // Clock rate in Hz
+#define BATCH_SIZE 4
 
-// Declare a local daisy_petal for hardware access
 DaisyPetal hw;
 FootswitchController footswitch_controller(&hw);
-LedController* led_controller = nullptr;
+LedController led_controller(MCU_CLOCK_RATE / BATCH_SIZE);
+ToggleSwitchController toggleswitch_controller(&hw);
 std::uint8_t preset_number = 0;
 
 ::daisy::Parameter dryOut, earlyOut, mainOut, time, diffusion, tapDecay;
@@ -152,7 +153,7 @@ static void processControls() {
 // This runs at a fixed rate, to prepare audio samples
 static void AudioCallback(AudioHandle::InputBuffer in,
                           AudioHandle::OutputBuffer out,
-                          size_t size) {
+                          size_t batch_size) {
   hw.ProcessAnalogControls();
   hw.ProcessDigitalControls();
 
@@ -165,19 +166,21 @@ static void AudioCallback(AudioHandle::InputBuffer in,
     preset_number++;
   }
 
-  led_controller->tick(fsw_info.bypassed, preset_number);
+  led_controller.tick(fsw_info.bypassed, preset_number);
 
-  float mono_input[BATCH_SIZE];
-  memcpy(mono_input, in[0], BATCH_SIZE);
+  auto toggle_info = toggleswitch_controller.tick();
+
+  float mono_input[batch_size];
+  memcpy(mono_input, in[0], batch_size);
 
   if (!fsw_info.bypassed) {
-    reverb->Process(mono_input, out[0], BATCH_SIZE);
+    reverb->Process(mono_input, out[0], batch_size);
     // for (size_t i = 0; i < size; i++)
     // {
     //     out[0][i] = outs[i] * 1.2;  // Slight overall volume boost at 1.2
     // }
   } else {
-    memcpy(out[0], mono_input, BATCH_SIZE);
+    memcpy(out[0], mono_input, batch_size);
   }
 }
 
@@ -188,7 +191,7 @@ int main(void) {
   samplerate = hw.AudioSampleRate();
   c = 0;
 
-  led_controller = &LedController(&hw, samplerate / BATCH_SIZE);
+  led_controller.init();
 
   AudioLib::ValueTables::Init();
   CloudSeed::FastSin::Init();
