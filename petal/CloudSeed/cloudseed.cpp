@@ -20,11 +20,15 @@
 #define BATCH_SIZE 4
 
 daisy::DaisyPetal hw;
+
+std::uint8_t preset_number = 0;
+
 FootswitchController footswitch_controller(&hw);
 LedController led_controller(&hw, MCU_CLOCK_RATE / BATCH_SIZE);
 ToggleSwitchController toggleswitch_controller(&hw);
 KnobController knob_controller(&hw);
-std::uint8_t preset_number = 0;
+
+daisysp::CrossFade input_mix;
 
 CloudSeed::ReverbController reverb =
   CloudSeed::ReverbController(MCU_CLOCK_RATE);
@@ -49,12 +53,22 @@ static void setParameter(std::uint8_t param, float val) {
   case UNUSED_PARAM:
     break;
   case INPUT_MIX:
+    input_mix.SetPos(val);
     break;
   case EARLY_LATE_MIX:
     break;
   default:
     reverb.SetParameter((Parameter)param, val);
     break;
+  }
+}
+
+static void writeMixedOutput(float* out,
+                             float* dry_in,
+                             float* reverb_out,
+                             size_t batch_size) {
+  for (size_t i = 0; i < batch_size; i++) {
+    out[i] = input_mix.Process(dry_in[i], reverb_out[i]);
   }
 }
 
@@ -86,8 +100,11 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   float mono_input[batch_size];
   memcpy(mono_input, in[0], batch_size);
 
+  float mono_reverb_output[batch_size];
   if (!fsw_info.bypassed) {
-    reverb.Process(mono_input, out[0], batch_size);
+    reverb.Process(mono_input, mono_reverb_output, batch_size);
+    writeMixedOutput(out[0], mono_input, mono_reverb_output, batch_size);
+
   } else {
     memcpy(out[0], mono_input, batch_size);
   }
@@ -97,7 +114,6 @@ int main(void) {
   float samplerate;
 
   hw.Init();
-  samplerate = hw.AudioSampleRate();
 
   AudioLib::ValueTables::Init();
   CloudSeed::FastSin::Init();
@@ -106,6 +122,8 @@ int main(void) {
   reverb.initFactoryChorus();
 
   // hw.SetAudioBlockSize(4);
+
+  input_mix.SetCurve(daisysp::CROSSFADE_CPOW);
 
   hw.StartAdc();
   hw.StartAudio(audioCallback);
