@@ -22,7 +22,7 @@ CloudSeed Mono Reverb algorithm.
 # To Test
 
 - Does the taps number or the feedback affect the delay lines more? Does changing them both simultaneously work?
-
+- How to reset to default presets?
 
 # Controls
 

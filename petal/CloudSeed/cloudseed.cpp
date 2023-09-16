@@ -12,6 +12,7 @@
 #include "../../CloudSeed/FastSin.h"
 #include "../../CloudSeed/ReverbController.h"
 #include "footswitchcontroller.hpp"
+#include "knobcontroller.hpp"
 #include "ledcontroller.hpp"
 #include "toggleswitchcontroller.hpp"
 
@@ -26,6 +27,7 @@ DaisyPetal hw;
 FootswitchController footswitch_controller(&hw);
 LedController led_controller(MCU_CLOCK_RATE / BATCH_SIZE);
 ToggleSwitchController toggleswitch_controller(&hw);
+KnobController knob_controller(&hw);
 std::uint8_t preset_number = 0;
 
 ::daisy::Parameter dryOut, earlyOut, mainOut, time, diffusion, tapDecay;
@@ -170,6 +172,9 @@ static void AudioCallback(AudioHandle::InputBuffer in,
 
   auto toggle_info = toggleswitch_controller.tick();
 
+  auto knob_info = knob_controller.tick(toggle_info.control_selector_mode,
+                                        fsw_info.controlSelectionModeActive);
+
   float mono_input[batch_size];
   memcpy(mono_input, in[0], batch_size);
 
@@ -201,18 +206,6 @@ int main(void) {
   reverb->initFactoryChorus();
 
   // hw.SetAudioBlockSize(4);
-
-  dryOut.Init(
-    hw.knob[Terrarium::KNOB_1], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-  earlyOut.Init(
-    hw.knob[Terrarium::KNOB_2], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-  mainOut.Init(
-    hw.knob[Terrarium::KNOB_3], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-  diffusion.Init(
-    hw.knob[Terrarium::KNOB_4], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-  tapDecay.Init(
-    hw.knob[Terrarium::KNOB_5], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
-  time.Init(hw.knob[Terrarium::KNOB_6], 0.0f, 1.0f, ::daisy::Parameter::LINEAR);
 
   pdryout_value = 0.0;
   pearlyout_value = 0.0;
