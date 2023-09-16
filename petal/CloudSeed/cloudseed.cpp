@@ -6,10 +6,10 @@
 #include "daisy_petal.h"
 #include "daisysp.h"
 
-#include "../../CloudSeed/AudioLib/MathDefs.h"
-#include "../../CloudSeed/AudioLib/ValueTables.h"
-#include "../../CloudSeed/Default.h"
-#include "../../CloudSeed/FastSin.h"
+// #include "../../CloudSeed/AudioLib/MathDefs.h"
+// #include "../../CloudSeed/AudioLib/ValueTables.h"
+// #include "../../CloudSeed/Default.h"
+// #include "../../CloudSeed/FastSin.h"
 #include "../../CloudSeed/ReverbController.h"
 #include "footswitchcontroller.hpp"
 #include "knobcontroller.hpp"
@@ -26,7 +26,8 @@ ToggleSwitchController toggleswitch_controller(&hw);
 KnobController knob_controller(&hw);
 std::uint8_t preset_number = 0;
 
-CloudSeed::ReverbController* reverb = NULL;
+CloudSeed::ReverbController reverb =
+  CloudSeed::ReverbController(MCU_CLOCK_RATE);
 
 // This is used in the modified CloudSeed code for allocating
 // delay line memory to SDRAM (64MB available on Daisy)
@@ -52,7 +53,7 @@ static void setParameter(std::uint8_t param, float val) {
   case EARLY_LATE_MIX:
     break;
   default:
-    reverb->SetParameter((Parameter)param, val);
+    reverb.SetParameter((Parameter)param, val);
     break;
   }
 }
@@ -86,7 +87,7 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   memcpy(mono_input, in[0], batch_size);
 
   if (!fsw_info.bypassed) {
-    reverb->Process(mono_input, out[0], batch_size);
+    reverb.Process(mono_input, out[0], batch_size);
   } else {
     memcpy(out[0], mono_input, batch_size);
   }
@@ -101,9 +102,8 @@ int main(void) {
   AudioLib::ValueTables::Init();
   CloudSeed::FastSin::Init();
 
-  reverb = new CloudSeed::ReverbController(samplerate);
-  reverb->ClearBuffers();
-  reverb->initFactoryChorus();
+  reverb.ClearBuffers();
+  reverb.initFactoryChorus();
 
   // hw.SetAudioBlockSize(4);
 
