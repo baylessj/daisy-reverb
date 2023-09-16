@@ -20,10 +20,8 @@ class LedController {
    * update_interval: the time in milliseconds between calls of the `tick()`
    *                  function.
    */
-  LedController(std::uint8_t update_interval)
-    : _update_interval(update_interval) {}
-
-  void init(daisy::DaisyPetal* hw) {
+  LedController(daisy::DaisyPetal* hw, std::uint16_t update_interval)
+    : _update_interval(update_interval) {
     _left.Init(hw->seed.GetPin(terrarium::Terrarium::LED_1), false);
     _right.Init(hw->seed.GetPin(terrarium::Terrarium::LED_2), false);
   }

@@ -16,26 +16,15 @@
 #include "ledcontroller.hpp"
 #include "toggleswitchcontroller.hpp"
 
-using namespace daisy;
-using namespace daisysp;
-using namespace terrarium;
-
 #define MCU_CLOCK_RATE 48000 // Clock rate in Hz
 #define BATCH_SIZE 4
 
-DaisyPetal hw;
+daisy::DaisyPetal hw;
 FootswitchController footswitch_controller(&hw);
-LedController led_controller(MCU_CLOCK_RATE / BATCH_SIZE);
+LedController led_controller(&hw, MCU_CLOCK_RATE / BATCH_SIZE);
 ToggleSwitchController toggleswitch_controller(&hw);
 KnobController knob_controller(&hw);
 std::uint8_t preset_number = 0;
-
-::daisy::Parameter dryOut, earlyOut, mainOut, time, diffusion, tapDecay;
-int c;
-
-// Initialize "previous" p values
-float pdryout_value, pearlyout_value, pmainout_value, ptime_value,
-  pdiffusion_value, pnumDelayLines, ptap_decay_value;
 
 CloudSeed::ReverbController* reverb = NULL;
 
@@ -54,112 +43,26 @@ void* custom_pool_allocate(size_t size) {
   return ptr;
 }
 
-void cyclePreset() {
-  c += 1;
-  if (c > 7) {
-    c = 0;
-  }
-
-  reverb->ClearBuffers();
-
-  if (c == 0) {
-    reverb->initFactoryChorus();
-  } else if (c == 1) {
-    reverb->initFactoryDullEchos();
-  } else if (c == 2) {
-    reverb->initFactoryHyperplane();
-  } else if (c == 3) {
-    reverb->initFactoryMediumSpace();
-  } else if (c == 4) {
-    reverb->initFactoryNoiseInTheHallway();
-  } else if (c == 5) {
-    reverb->initFactoryRubiKaFields();
-  } else if (c == 6) {
-    reverb->initFactorySmallRoom();
-  } else if (c == 7) {
-    reverb->initFactory90sAreBack();
-    //} else if ( c == 8 ) {
-    //        reverb->initFactoryThroughTheLookingGlass(); // Only preset that
-    //        sounds scratchy (using 4-5 delay lines, mono) causes buffer
-    //        underruns
-    //                                                       //   TODO Try
-    //                                                       slight
-    //                                                       modifications to
-    //                                                       this preset to
-    //                                                       allow to work
-  }
-}
-
-// TODO: update the controls here too, don't just read the values
-static void processControls() {
-  float dryout_value = dryOut.Process();
-  float earlyout_value = earlyOut.Process();
-  float mainout_value = mainOut.Process();
-  float time_value = time.Process();
-  float diffusion_value = diffusion.Process();
-  float tap_decay_value = tapDecay.Process();
-
-  if ((pdryout_value < dryout_value) || (pdryout_value > dryout_value)) {
-    reverb->SetParameter(::Parameter::DryOut, dryout_value);
-    pdryout_value = dryout_value;
-  }
-
-  if ((pearlyout_value < earlyout_value) ||
-      (pearlyout_value > earlyout_value)) {
-    reverb->SetParameter(::Parameter::EarlyOut, earlyout_value);
-    pearlyout_value = earlyout_value;
-  }
-
-  if ((pmainout_value < mainout_value) || (pmainout_value > mainout_value)) {
-    reverb->SetParameter(::Parameter::MainOut, mainout_value);
-    pmainout_value = mainout_value;
-  }
-
-  if ((ptime_value < time_value) || (ptime_value > time_value)) {
-    reverb->SetParameter(::Parameter::LineDecay, time_value);
-    ptime_value = time_value;
-  }
-  if ((pdiffusion_value < diffusion_value) ||
-      (pdiffusion_value > diffusion_value)) {
-    reverb->SetParameter(::Parameter::LateDiffusionFeedback, diffusion_value);
-    pdiffusion_value = diffusion_value;
-  }
-
-  if ((ptap_decay_value < tap_decay_value) ||
-      (ptap_decay_value > tap_decay_value)) {
-    reverb->SetParameter(::Parameter::TapDecay, tap_decay_value);
-    ptap_decay_value = tap_decay_value;
-  }
-
-  // Delay Line Switches
-  //     - The .Pressed() function below counts an 'ON' switch as pressed.
-  //     - Total number of switches on sets how many delay lines are activated
-  //     (1 - 5)
-  int switches[4] = {Terrarium::SWITCH_1,
-                     Terrarium::SWITCH_2,
-                     Terrarium::SWITCH_3,
-                     Terrarium::SWITCH_4}; // Can this be moved elsewhere?
-  float numDelayLines = 1.0;
-  for (int i = 0; i < 4; i++) {
-    if (hw.switches[switches[i]].Pressed()) {
-      numDelayLines += 1.0;
-    }
-  }
-  if (pnumDelayLines != numDelayLines) {
-    // reverb->ClearBuffers();  //TODO is this needed?
-    reverb->SetParameter(::Parameter::LineCount, numDelayLines);
-    pnumDelayLines = numDelayLines;
+static void setParameter(std::uint8_t param, float val) {
+  switch (param) {
+  case UNUSED_PARAM:
+    break;
+  case INPUT_MIX:
+    break;
+  case EARLY_LATE_MIX:
+    break;
+  default:
+    reverb->SetParameter((Parameter)param, val);
+    break;
   }
 }
 
 // This runs at a fixed rate, to prepare audio samples
-static void AudioCallback(AudioHandle::InputBuffer in,
-                          AudioHandle::OutputBuffer out,
+static void audioCallback(daisy::AudioHandle::InputBuffer in,
+                          daisy::AudioHandle::OutputBuffer out,
                           size_t batch_size) {
   hw.ProcessAnalogControls();
   hw.ProcessDigitalControls();
-
-  processControls();
 
   auto fsw_info = footswitch_controller.tick();
 
@@ -175,15 +78,15 @@ static void AudioCallback(AudioHandle::InputBuffer in,
   auto knob_info = knob_controller.tick(toggle_info.control_selector_mode,
                                         fsw_info.controlSelectionModeActive);
 
+  for (auto ki : knob_info) {
+    setParameter(ki.first, ki.second);
+  }
+
   float mono_input[batch_size];
   memcpy(mono_input, in[0], batch_size);
 
   if (!fsw_info.bypassed) {
     reverb->Process(mono_input, out[0], batch_size);
-    // for (size_t i = 0; i < size; i++)
-    // {
-    //     out[0][i] = outs[i] * 1.2;  // Slight overall volume boost at 1.2
-    // }
   } else {
     memcpy(out[0], mono_input, batch_size);
   }
@@ -194,9 +97,6 @@ int main(void) {
 
   hw.Init();
   samplerate = hw.AudioSampleRate();
-  c = 0;
-
-  led_controller.init(&hw);
 
   AudioLib::ValueTables::Init();
   CloudSeed::FastSin::Init();
@@ -207,18 +107,9 @@ int main(void) {
 
   // hw.SetAudioBlockSize(4);
 
-  pdryout_value = 0.0;
-  pearlyout_value = 0.0;
-  pmainout_value = 0.0;
-  ptime_value = 0.0;
-  pdiffusion_value = 0.0;
-  ptap_decay_value = 0.0;
-  pnumDelayLines = 5.0; // Set to max number of delay lines initially
-
   hw.StartAdc();
-  hw.StartAudio(AudioCallback);
+  hw.StartAudio(audioCallback);
   while (1) {
-    // Do Stuff Infinitely Here
-    System::Delay(10);
+    daisy::System::Delay(10);
   }
 }
