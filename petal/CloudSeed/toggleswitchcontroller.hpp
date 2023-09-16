@@ -6,6 +6,8 @@
 #include "daisy_petal.h"
 #include "terrarium.h"
 
+#pragma once
+
 struct ToggleSwitchInfo {
   bool early_diffusion_enabled;
   bool late_diffusion_enabled;

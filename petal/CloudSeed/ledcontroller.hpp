@@ -7,6 +7,8 @@
 #include "daisy_petal.h"
 #include "terrarium.h"
 
+#pragma once
+
 // The duration that the preset LED will be held, high or low, when flashing.
 // In milliseconds.
 #define LED_FLASH_DURATION 1000

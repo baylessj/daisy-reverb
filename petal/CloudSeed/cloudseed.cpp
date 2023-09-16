@@ -191,7 +191,7 @@ int main(void) {
   samplerate = hw.AudioSampleRate();
   c = 0;
 
-  led_controller.init();
+  led_controller.init(&hw);
 
   AudioLib::ValueTables::Init();
   CloudSeed::FastSin::Init();
