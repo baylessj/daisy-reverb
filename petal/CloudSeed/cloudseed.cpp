@@ -48,18 +48,34 @@ void* custom_pool_allocate(size_t size) {
   return ptr;
 }
 
+/**
+ * Constant power crossfade between two gains
+ */
+static std::pair<float, float> gainsFromMix(float mix) {
+  return {
+    sinf(mix * HALFPI_F),
+    sinf((1.0f - mix) * HALFPI_F),
+  };
+}
+
 static void setParameter(std::uint8_t param, float val) {
   switch (param) {
   case UNUSED_PARAM:
     break;
-  case INPUT_MIX:
+  case INPUT_MIX: {
     input_mix.SetPos(val);
     break;
-  case EARLY_LATE_MIX:
+  }
+  case EARLY_LATE_MIX: {
+    auto verb_gains = gainsFromMix(val);
+    reverb.SetParameter(Parameter::EarlyOut, verb_gains.first);
+    reverb.SetParameter(Parameter::MainOut, verb_gains.second);
     break;
-  default:
+  }
+  default: {
     reverb.SetParameter((Parameter)param, val);
     break;
+  }
   }
 }
 
@@ -111,8 +127,6 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
 }
 
 int main(void) {
-  float samplerate;
-
   hw.Init();
 
   AudioLib::ValueTables::Init();
@@ -121,7 +135,7 @@ int main(void) {
   reverb.ClearBuffers();
   reverb.initFactoryChorus();
 
-  // hw.SetAudioBlockSize(4);
+  hw.SetAudioBlockSize(BATCH_SIZE);
 
   input_mix.SetCurve(daisysp::CROSSFADE_CPOW);
 
