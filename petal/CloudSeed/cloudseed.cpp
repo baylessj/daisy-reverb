@@ -50,6 +50,9 @@ void* custom_pool_allocate(size_t size) {
 
 /**
  * Constant power crossfade between two gains
+ *
+ * TODO: this might need to be scaled up * 2 so that the middle position has
+ * both of them on full?
  */
 static std::pair<float, float> gainsFromMix(float mix) {
   return {
