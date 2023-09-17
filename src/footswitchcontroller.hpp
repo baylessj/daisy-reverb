@@ -20,17 +20,15 @@
 // the Control Selection, and not a tap. In milliseconds.
 #define CONTROL_SELECTION_TIME 1000
 
-struct FootswitchControllerInfo {
-  FootswitchControllerInfo(bool ibypassed,
-                           bool icontrolSelectionModeActive,
-                           bool iadvancePreset)
-    : bypassed(ibypassed),
-      controlSelectionModeActive(icontrolSelectionModeActive),
-      advancePreset(iadvancePreset) {}
+// How long both buttons should be held for the saving process, in milliseconds.
+#define SAVING_TIME 4000
 
+struct FootswitchControllerInfo {
   bool bypassed;
   bool controlSelectionModeActive;
   bool advancePreset;
+  bool saving;
+  bool save;
 };
 
 class FootswitchController {
@@ -44,14 +42,36 @@ class FootswitchController {
    * event loop.
    */
   FootswitchControllerInfo tick() {
-    // TODO: how do we determine when the left footswitch is clicked on its own,
-    // and when it's clicked with the right? Ignoring saving presets for now
+    float both_held_time =
+      daisysp::fmin(_left.TimeHeldMs(), _right.TimeHeldMs());
+
+    if (!_bypassed && !_saving && _left.Pressed() && _right.Pressed() &&
+        both_held_time < SAVING_TIME) {
+      // check that we haven't exceeded the saving time so it doesn't start
+      // saving again right after finishing
+      _saving = true;
+    }
+
+    if (_saving) {
+      if (!_left.Pressed() || !_right.Pressed()) {
+        // Footswitch released, saving process ended
+        _saving = false;
+        return FootswitchControllerInfo{
+          _bypassed, false, false, _saving, false};
+      }
+
+      if (both_held_time > SAVING_TIME) {
+        // Completed saving process
+        _saving = false;
+        return FootswitchControllerInfo{_bypassed, false, false, _saving, true};
+      }
+    }
 
     _processBypass();
     auto advancePreset = _processPreset();
 
-    return FootswitchControllerInfo(
-      _bypassed, _controlSelection, advancePreset);
+    return FootswitchControllerInfo{
+      _bypassed, _controlSelection, advancePreset, _saving, false};
   }
 
   private:
@@ -90,6 +110,8 @@ class FootswitchController {
   }
 
   daisy::Switch _left, _right;
+
+  bool _saving = false;
 
   bool _bypassed = true;
   bool _controlSelection = false;
