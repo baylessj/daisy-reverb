@@ -110,8 +110,12 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   auto fsw_info = footswitch_controller.tick();
 
   if (fsw_info.advancePreset) {
-    // TODO: set a limit to this and have it roll over
-    preset_number++;
+    if (preset_number == NUM_PRESETS) {
+      preset_number = 0;
+    } else {
+      preset_number++;
+    }
+
     recallAllPresets();
   }
 
