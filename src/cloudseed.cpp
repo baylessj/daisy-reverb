@@ -6,14 +6,11 @@
 #include "daisy_petal.h"
 #include "daisysp.h"
 
-// #include "../../CloudSeed/AudioLib/MathDefs.h"
-// #include "../../CloudSeed/AudioLib/ValueTables.h"
-// #include "../../CloudSeed/Default.h"
-// #include "../../CloudSeed/FastSin.h"
-#include "../../CloudSeed/ReverbController.h"
+#include "ReverbController.h"
 #include "footswitchcontroller.hpp"
 #include "knobcontroller.hpp"
 #include "ledcontroller.hpp"
+#include "presetcontroller.hpp"
 #include "toggleswitchcontroller.hpp"
 
 #define MCU_CLOCK_RATE 48000 // Clock rate in Hz
@@ -27,8 +24,10 @@ FootswitchController footswitch_controller(&hw);
 LedController led_controller(&hw, MCU_CLOCK_RATE / BATCH_SIZE);
 ToggleSwitchController toggleswitch_controller(&hw);
 KnobController knob_controller(&hw);
+PresetController preset_controller;
 
 daisysp::CrossFade input_mix;
+float early_late_mix;
 
 CloudSeed::ReverbController reverb =
   CloudSeed::ReverbController(MCU_CLOCK_RATE);
@@ -70,6 +69,7 @@ static void setParameter(std::uint8_t param, float val) {
     break;
   }
   case EARLY_LATE_MIX: {
+    early_late_mix = val;
     auto verb_gains = gainsFromMix(val);
     reverb.SetParameter(Parameter::EarlyOut, verb_gains.first);
     reverb.SetParameter(Parameter::MainOut, verb_gains.second);
@@ -91,7 +91,16 @@ static void writeMixedOutput(float* out,
   }
 }
 
-// This runs at a fixed rate, to prepare audio samples
+static void recallAllPresets() {
+  auto preset_params = preset_controller.recall(preset_number);
+  for (std::uint16_t i = 0; i < (std::uint16_t)Parameter::Count; i++) {
+    setParameter(i, preset_params[i]);
+  }
+  setParameter(INPUT_MIX, preset_params[INPUT_MIX]);
+  setParameter(EARLY_LATE_MIX, preset_params[EARLY_LATE_MIX]);
+}
+
+// This runs at a fixed rate to prepare audio samples
 static void audioCallback(daisy::AudioHandle::InputBuffer in,
                           daisy::AudioHandle::OutputBuffer out,
                           size_t batch_size) {
@@ -103,6 +112,16 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   if (fsw_info.advancePreset) {
     // TODO: set a limit to this and have it roll over
     preset_number++;
+    recallAllPresets();
+  }
+
+  if (fsw_info.save) {
+    float current_params[PARAMETERS_LENGTH];
+    memcpy(current_params, reverb.GetAllParameters(), (size_t)Parameter::Count);
+    current_params[INPUT_MIX] = input_mix.GetPos(0.0); // parameter is unused?
+    current_params[EARLY_LATE_MIX] = early_late_mix;
+
+    preset_controller.save(preset_number, current_params);
   }
 
   led_controller.tick(fsw_info.bypassed, preset_number, fsw_info.saving);

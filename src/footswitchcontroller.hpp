@@ -7,10 +7,10 @@
  * - save the current preset
  * - determine the control selector mode
  */
+#pragma once
+
 #include "daisy_petal.h"
 #include "terrarium.h"
-
-#pragma once
 
 // How long the left switch can be held before it is considered a Momentary
 // Bypass, in milliseconds
