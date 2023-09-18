@@ -105,7 +105,7 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
     preset_number++;
   }
 
-  led_controller.tick(fsw_info.bypassed, preset_number);
+  led_controller.tick(fsw_info.bypassed, preset_number, fsw_info.saving);
 
   auto toggle_info = toggleswitch_controller.tick();
 

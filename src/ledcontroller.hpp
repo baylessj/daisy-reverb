@@ -13,6 +13,8 @@
 // In milliseconds.
 #define LED_FLASH_DURATION 1000
 
+#define NUM_SAVING_FLASHES 4
+
 class LedController {
   public:
   /**
@@ -26,41 +28,31 @@ class LedController {
     _right.Init(hw->seed.GetPin(terrarium::Terrarium::LED_2), false);
   }
 
-  void tick(bool bypassed, int preset_number) {
+  void tick(bool bypassed, int preset_number, bool saving) {
+    if (saving && !_saving) {
+      _led_tick_count = 0;
+      _num_flashes_this_cycle = 0;
+      _setLeft(true);
+      _setRight(true);
+    }
+    _saving = saving;
+
+    if (saving) {
+      _savingFlash();
+      return;
+    }
+
     if (bypassed) {
       _setLeft(false);
       _setRight(false);
       _led_tick_count = 0;
       _num_flashes_this_cycle = 0;
-
       return;
     }
 
     _setLeft(true);
 
-    if (_led_tick_count == 0 && _num_flashes_this_cycle == 0) {
-      // starting a new round of flashing the preset number
-      _setRight(true);
-    }
-
-    _led_tick_count++;
-
-    auto state_duration = _this_state_duration(preset_number);
-    if (_led_tick_count * _update_interval > state_duration) {
-      // held the LED state for the requested duration, change
-      _setRight(!_isRightOn);
-      _led_tick_count = 0;
-
-      if (!_isRightOn) {
-        _num_flashes_this_cycle++;
-      }
-
-      if (_num_flashes_this_cycle > (preset_number + 1)) {
-        // LED has flashed the same number of times as our preset number
-        // (1-aligned), starting again
-        _num_flashes_this_cycle = 0;
-      }
-    }
+    _presetFlash(preset_number);
   }
 
   private:
@@ -75,7 +67,7 @@ class LedController {
     _isRightOn = on;
   }
 
-  std::uint16_t _this_state_duration(int preset_number) {
+  std::uint16_t _thisPresetStateDuration(int preset_number) {
     if (_num_flashes_this_cycle == (preset_number + 1) && !_isRightOn) {
       // Keep the LED off for 4 times the normal duration when between flash
       // cycles to designate the end of the cycle
@@ -84,9 +76,46 @@ class LedController {
     return LED_FLASH_DURATION;
   }
 
+  void _flash(std::uint16_t duration, std::uint8_t count) {
+    if (_led_tick_count == 0 && _num_flashes_this_cycle == 0) {
+      // starting a new round of flashing the preset number
+      _setRight(true);
+    }
+
+    _led_tick_count++;
+
+    if (_led_tick_count * _update_interval > duration) {
+      // held the LED state for the requested duration, change
+      _setRight(!_isRightOn);
+      _led_tick_count = 0;
+
+      if (!_isRightOn) {
+        _num_flashes_this_cycle++;
+      }
+
+      if (_num_flashes_this_cycle > count) {
+        // LED has flashed the requested number of times, restarting the cycle
+        _num_flashes_this_cycle = 0;
+      }
+    }
+  }
+
+  void _presetFlash(int preset_number) {
+    auto state_duration = _thisPresetStateDuration(preset_number);
+    _flash(state_duration, preset_number + 1);
+  }
+
+  void _savingFlash() {
+    // Flash twice as fast for the second pair
+    auto state_duration =
+      (_led_tick_count < 2) ? LED_FLASH_DURATION : LED_FLASH_DURATION / 2;
+    _flash(state_duration, NUM_SAVING_FLASHES);
+  }
+
   daisy::Led _left, _right;
   std::uint16_t _update_interval;
   bool _isRightOn = false;
   std::uint16_t _led_tick_count = 0;
   std::uint8_t _num_flashes_this_cycle = 0;
+  bool _saving = false;
 };
