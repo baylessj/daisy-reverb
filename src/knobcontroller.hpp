@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "Parameter.h"
+#include "cloudseed/Parameter.h"
 #include "daisy_petal.h"
 #include "terrarium.h"
 
@@ -22,9 +22,9 @@ static const float UNUSED_VALUE = std::numeric_limits<float>::max();
 typedef std::array<float, NUM_KNOBS> KnobVals;
 typedef std::array<std::pair<std::uint8_t, float>, NUM_KNOBS> ParamVals;
 
-#define INPUT_MIX ((std::uint8_t)Parameter::Count + 1)
-#define EARLY_LATE_MIX ((std::uint8_t)Parameter::Count + 2)
-#define UNUSED_PARAM ((std::uint8_t)Parameter::Count + 3)
+#define INPUT_MIX ((std::uint8_t)cloudSeed::Parameter::Count + 1)
+#define EARLY_LATE_MIX ((std::uint8_t)cloudSeed::Parameter::Count + 2)
+#define UNUSED_PARAM ((std::uint8_t)cloudSeed::Parameter::Count + 3)
 
 const std::array<std::uint8_t, NUM_KNOBS> TERRARIUM_KNOBS = {
   terrarium::Terrarium::KNOB_1,
@@ -59,40 +59,52 @@ class KnobController {
     case CONTROLS_BASICS:
       return {{
         {INPUT_MIX, changed_vals[0]},
-        {(std::uint8_t)Parameter::TapDecay, changed_vals[1]},
-        {(std::uint8_t)Parameter::TapCount, _map_value(changed_vals[2], 5.0f)},
+        {(std::uint8_t)cloudSeed::Parameter::TapDecay, changed_vals[1]},
+        {(std::uint8_t)cloudSeed::Parameter::TapCount,
+         _map_value(changed_vals[2], 5.0f)},
         {EARLY_LATE_MIX, changed_vals[3]},
-        {(std::uint8_t)Parameter::LineDecay, changed_vals[4]},
-        {(std::uint8_t)Parameter::LineCount, _map_value(changed_vals[5], 5.0f)},
+        {(std::uint8_t)cloudSeed::Parameter::LineDecay, changed_vals[4]},
+        {(std::uint8_t)cloudSeed::Parameter::LineCount,
+         _map_value(changed_vals[5], 5.0f)},
       }};
     case CONTROLS_DIFFUSION:
       return {{
-        {(std::uint8_t)Parameter::DiffusionDelay, changed_vals[0]},
-        {(std::uint8_t)Parameter::DiffusionFeedback, changed_vals[1]},
-        {(std::uint8_t)Parameter::DiffusionStages,
+        {(std::uint8_t)cloudSeed::Parameter::DiffusionDelay, changed_vals[0]},
+        {(std::uint8_t)cloudSeed::Parameter::DiffusionFeedback,
+         changed_vals[1]},
+        {(std::uint8_t)cloudSeed::Parameter::DiffusionStages,
          _map_value(changed_vals[2], 5.0f)},
-        {(std::uint8_t)Parameter::LateDiffusionDelay, changed_vals[3]},
-        {(std::uint8_t)Parameter::LateDiffusionFeedback, changed_vals[4]},
-        {(std::uint8_t)Parameter::LateDiffusionStages,
+        {(std::uint8_t)cloudSeed::Parameter::LateDiffusionDelay,
+         changed_vals[3]},
+        {(std::uint8_t)cloudSeed::Parameter::LateDiffusionFeedback,
+         changed_vals[4]},
+        {(std::uint8_t)cloudSeed::Parameter::LateDiffusionStages,
          _map_value(changed_vals[5], 5.0f)},
       }};
     case CONTROLS_MODULATION:
       return {{
-        {(std::uint8_t)Parameter::EarlyDiffusionModAmount, changed_vals[0]},
-        {(std::uint8_t)Parameter::LineModAmount, changed_vals[1]},
-        {(std::uint8_t)Parameter::LateDiffusionModAmount, changed_vals[2]},
-        {(std::uint8_t)Parameter::EarlyDiffusionModRate, changed_vals[3]},
-        {(std::uint8_t)Parameter::LineModRate, changed_vals[4]},
-        {(std::uint8_t)Parameter::LateDiffusionModRate, changed_vals[5]},
+        {(std::uint8_t)cloudSeed::Parameter::EarlyDiffusionModAmount,
+         changed_vals[0]},
+        {(std::uint8_t)cloudSeed::Parameter::LineModAmount, changed_vals[1]},
+        {(std::uint8_t)cloudSeed::Parameter::LateDiffusionModAmount,
+         changed_vals[2]},
+        {(std::uint8_t)cloudSeed::Parameter::EarlyDiffusionModRate,
+         changed_vals[3]},
+        {(std::uint8_t)cloudSeed::Parameter::LineModRate, changed_vals[4]},
+        {(std::uint8_t)cloudSeed::Parameter::LateDiffusionModRate,
+         changed_vals[5]},
       }};
     default: // CONTROLS_EQ
       return {{
-        {(std::uint8_t)Parameter::PreDelay, changed_vals[0]},
-        {(std::uint8_t)Parameter::PostLowShelfGain, changed_vals[1]},
-        {(std::uint8_t)Parameter::PostHighShelfGain, changed_vals[2]},
-        {(std::uint8_t)Parameter::HighPass, changed_vals[3]},
-        {(std::uint8_t)Parameter::PostLowShelfFrequency, changed_vals[4]},
-        {(std::uint8_t)Parameter::PostHighShelfFrequency, changed_vals[5]},
+        {(std::uint8_t)cloudSeed::Parameter::PreDelay, changed_vals[0]},
+        {(std::uint8_t)cloudSeed::Parameter::PostLowShelfGain, changed_vals[1]},
+        {(std::uint8_t)cloudSeed::Parameter::PostHighShelfGain,
+         changed_vals[2]},
+        {(std::uint8_t)cloudSeed::Parameter::HighPass, changed_vals[3]},
+        {(std::uint8_t)cloudSeed::Parameter::PostLowShelfFrequency,
+         changed_vals[4]},
+        {(std::uint8_t)cloudSeed::Parameter::PostHighShelfFrequency,
+         changed_vals[5]},
       }};
     }
   }

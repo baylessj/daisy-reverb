@@ -2,22 +2,14 @@
 TARGET = cloudseed
 
 # Sources
-CPP_SOURCES = cloudseed.cpp
+CPP_SOURCES = allocator.cpp cloudseed.cpp  cloudseed/audiolib/biquad.cpp cloudseed/audiolib/sharandom.cpp cloudseed/audiolib/valuetables.cpp
 # Library Locations
 LIBDAISY_DIR = ../libdaisy
 DAISYSP_DIR = ../DaisySP
-CLOUDSEED_DIR = ../CloudSeed
 
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
-
-C_INCLUDES += \
--I../CloudSeed \
-
-LIBS += -lcloudseed
-LIBDIR += -L../CloudSeed/build
-
 # Include terrarium.h
-C_INCLUDES += -I../Terrarium
+C_INCLUDES += -I../Terrarium -I../DaisySP/Source

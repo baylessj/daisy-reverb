@@ -6,15 +6,13 @@
 #include "daisy_petal.h"
 #include "daisysp.h"
 
-#include "ReverbController.h"
+#include "cloudseed/ReverbController.h"
+#include "constants.h"
 #include "footswitchcontroller.hpp"
 #include "knobcontroller.hpp"
 #include "ledcontroller.hpp"
 #include "presetcontroller.hpp"
 #include "toggleswitchcontroller.hpp"
-
-#define MCU_CLOCK_RATE 48000 // Clock rate in Hz
-#define BATCH_SIZE 4
 
 daisy::DaisyPetal hw;
 
@@ -29,23 +27,7 @@ PresetController preset_controller;
 daisysp::CrossFade input_mix;
 float early_late_mix;
 
-CloudSeed::ReverbController reverb =
-  CloudSeed::ReverbController(MCU_CLOCK_RATE);
-
-// This is used in the modified CloudSeed code for allocating
-// delay line memory to SDRAM (64MB available on Daisy)
-#define CUSTOM_POOL_SIZE (48 * 1024 * 1024)
-DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
-size_t pool_index = 0;
-int allocation_count = 0;
-void* custom_pool_allocate(size_t size) {
-  if (pool_index + size >= CUSTOM_POOL_SIZE) {
-    return 0;
-  }
-  void* ptr = &custom_pool[pool_index];
-  pool_index += size;
-  return ptr;
-}
+cloudSeed::ReverbController reverb;
 
 /**
  * Constant power crossfade between two gains
@@ -71,12 +53,12 @@ static void setParameter(std::uint8_t param, float val) {
   case EARLY_LATE_MIX: {
     early_late_mix = val;
     auto verb_gains = gainsFromMix(val);
-    reverb.SetParameter(Parameter::EarlyOut, verb_gains.first);
-    reverb.SetParameter(Parameter::MainOut, verb_gains.second);
+    reverb.setParameter(cloudSeed::Parameter::EarlyOut, verb_gains.first);
+    reverb.setParameter(cloudSeed::Parameter::MainOut, verb_gains.second);
     break;
   }
   default: {
-    reverb.SetParameter((Parameter)param, val);
+    reverb.setParameter((cloudSeed::Parameter)param, val);
     break;
   }
   }
@@ -93,7 +75,8 @@ static void writeMixedOutput(float* out,
 
 static void recallAllPresets() {
   auto preset_params = preset_controller.recall(preset_number);
-  for (std::uint16_t i = 0; i < (std::uint16_t)Parameter::Count; i++) {
+  for (std::uint16_t i = 0; i < (std::uint16_t)cloudSeed::Parameter::Count;
+       i++) {
     setParameter(i, preset_params[i]);
   }
   setParameter(INPUT_MIX, preset_params[INPUT_MIX]);
@@ -121,7 +104,9 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
 
   if (fsw_info.save) {
     float current_params[PARAMETERS_LENGTH];
-    memcpy(current_params, reverb.GetAllParameters(), (size_t)Parameter::Count);
+    memcpy(current_params,
+           reverb.getAllParameters(),
+           (size_t)cloudSeed::Parameter::Count);
     current_params[INPUT_MIX] = input_mix.GetPos(0.0); // parameter is unused?
     current_params[EARLY_LATE_MIX] = early_late_mix;
 
@@ -144,7 +129,7 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
 
   float mono_reverb_output[batch_size];
   if (!fsw_info.bypassed) {
-    reverb.Process(mono_input, mono_reverb_output, batch_size);
+    reverb.tick(mono_input, mono_reverb_output);
     writeMixedOutput(out[0], mono_input, mono_reverb_output, batch_size);
 
   } else {
@@ -155,11 +140,9 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
 int main(void) {
   hw.Init();
 
-  AudioLib::ValueTables::Init();
-  CloudSeed::FastSin::Init();
+  audioLib::ValueTables::Init();
 
-  reverb.ClearBuffers();
-  reverb.initFactoryChorus();
+  reverb.clearBuffers();
 
   hw.SetAudioBlockSize(BATCH_SIZE);
 
