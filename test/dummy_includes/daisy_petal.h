@@ -3,6 +3,8 @@
 #include <array>
 #include <cstddef>
 
+#include "daisy.h"
+
 #define DSY_SDRAM_BSS
 
 namespace daisy {
@@ -74,6 +76,8 @@ struct Led {
 };
 
 struct DaisySeed {
+  QspiHandle qspi;
+
   int GetPin(int pin) {
     return pin;
   }

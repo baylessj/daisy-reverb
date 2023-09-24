@@ -3,6 +3,9 @@
  */
 #pragma once
 
+#include "daisy.h"
+#include "daisy_petal.h"
+
 #include "cloudseed/Parameter.h"
 #include <cstdint>
 #include <cstring>
@@ -20,14 +23,25 @@
  */
 class PresetController {
   public:
+  PresetController(daisy::DaisyPetal* hw)
+    : _nvm(daisy::PersistentStorage<
+           std::array<std::array<float, NUM_PRESETS>, PARAMETERS_LENGTH>>(
+        hw->seed.qspi)) {}
+
   void save(std::uint8_t preset_number, float* parameters) {
-    std::memcpy(presets[preset_number], parameters, PARAMETERS_LENGTH);
+    auto cur_settings = _nvm.GetSettings();
+    std::copy(parameters,
+              parameters + PARAMETERS_LENGTH,
+              std::begin(cur_settings[preset_number]));
+    _nvm.Save();
   }
 
   float* recall(std::uint8_t preset_number) {
-    return presets[preset_number];
+    return _nvm.GetSettings()[preset_number].begin();
   }
 
   private:
-  float presets[NUM_PRESETS][PARAMETERS_LENGTH];
+  daisy::PersistentStorage<
+    std::array<std::array<float, NUM_PRESETS>, PARAMETERS_LENGTH>>
+    _nvm;
 };

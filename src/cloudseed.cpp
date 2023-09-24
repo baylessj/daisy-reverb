@@ -2,9 +2,9 @@
 // Intended for the Terrarrium guitar pedal hardware.
 // Code has been modified for mono processing (originally stereo) to
 // allow up to 5 delay lines on the Daisy Seed.
-
 #include "daisy_petal.h"
 #include "daisysp.h"
+#include <array>
 
 #include "cloudseed/ReverbController.h"
 #include "constants.h"
@@ -22,7 +22,7 @@ FootswitchController footswitch_controller(&hw);
 LedController led_controller(&hw, MCU_CLOCK_RATE / BATCH_SIZE);
 ToggleSwitchController toggleswitch_controller(&hw);
 KnobController knob_controller(&hw);
-PresetController preset_controller;
+PresetController preset_controller(&hw);
 
 daisysp::CrossFade input_mix;
 float early_late_mix;
