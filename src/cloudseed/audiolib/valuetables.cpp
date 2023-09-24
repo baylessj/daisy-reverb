@@ -5,14 +5,6 @@
 
 namespace audioLib {
 namespace valueTables {
-float DSY_SDRAM_BSS Sqrt[TableSize];
-float DSY_SDRAM_BSS Sqrt3[TableSize];
-float DSY_SDRAM_BSS Pow1_5[TableSize];
-float DSY_SDRAM_BSS Pow2[TableSize];
-float DSY_SDRAM_BSS Pow3[TableSize];
-float DSY_SDRAM_BSS Pow4[TableSize];
-float DSY_SDRAM_BSS x2Pow3[TableSize];
-
 // octave response. value float every step (2,3,4,5 or 6 steps)
 float DSY_SDRAM_BSS Response2Oct[TableSize];
 float DSY_SDRAM_BSS Response3Oct[TableSize];
@@ -31,14 +23,6 @@ void Init() {
   for (int i = 0; i <= 4000; i++) {
     float x = i / 4000.0;
 
-    Sqrt[i] = std::sqrt(x);
-    Sqrt3[i] = std::pow(x, 1.0 / 3.0);
-    Pow1_5[i] = std::pow(x, 1.5);
-    Pow2[i] = std::pow(x, 2.0);
-    Pow3[i] = std::pow(x, 3.0);
-    Pow4[i] = std::pow(x, 4.0);
-
-    x2Pow3[i] = std::pow(2 * x, 3.0);
     Response2Oct[i] = (std::pow(4, x) - 1.0) / 4.0 + 0.25;
     Response3Oct[i] = (std::pow(8, x) - 1.0) / 8.0 + 0.125;
     Response4Oct[i] = (std::pow(16, x) - 1.0) / 16.0 + 0.125 / 2.0;
