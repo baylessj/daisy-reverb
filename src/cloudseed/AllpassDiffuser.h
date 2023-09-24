@@ -4,8 +4,9 @@
 
 #include "../allocator.hpp"
 #include "../constants.h"
-#include "AudioLib/ShaRandom.h"
 #include "ModulatedAllpass.h"
+#include "Utility/dsp.h"
+#include "audiolib/sharandom.h"
 
 #define MAX_DIFFUSER_STAGE_COUNT 2
 
@@ -112,7 +113,7 @@ class AllpassDiffuser {
   void update() {
     for (size_t i = 0; i < _filters.size(); i++) {
       auto r = _seed_values[i];
-      auto d = std::pow(10, r) * 0.1; // 0.1 ... 1.0
+      auto d = daisysp::pow10f(r) * 0.1; // 0.1 ... 1.0
       _filters[i]->ksample_delay = (int)(_delay * d);
     }
   }

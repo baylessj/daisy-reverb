@@ -4,7 +4,8 @@
 #include <cmath>
 #include <cstring>
 
-namespace cloudSeed::utils {
+namespace cloudSeed {
+namespace utils {
 
 inline void gain(float* buffer, float gain, int len) {
   for (int i = 0; i < len; i++) {
@@ -49,4 +50,5 @@ template <typename T> static float Gain2DB(T input) {
 
   return 20.0f * std::log10(input);
 }
-} // namespace cloudSeed::utils
+} // namespace utils
+} // namespace cloudSeed

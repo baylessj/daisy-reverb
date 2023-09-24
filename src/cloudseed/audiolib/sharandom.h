@@ -2,6 +2,8 @@
 
 #include <vector>
 
-namespace audioLib::sharandom {
+namespace audioLib {
+namespace sharandom {
 void generate(long long seed, size_t count, float* out);
-} // namespace audioLib::sharandom
+} // namespace sharandom
+} // namespace audioLib

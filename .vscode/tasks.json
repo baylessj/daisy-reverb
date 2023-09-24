@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "cd src && make && cd ../"
+            "command": "cd src && LOCAL=1 make && cd ../"
         }
     ]
 }
