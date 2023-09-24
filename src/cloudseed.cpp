@@ -137,6 +137,7 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   }
 }
 
+#ifndef DEBUG
 int main(void) {
   hw.Init();
 
@@ -150,7 +151,9 @@ int main(void) {
 
   hw.StartAdc();
   hw.StartAudio(audioCallback);
+
   while (1) {
     daisy::System::Delay(10);
   }
 }
+#endif

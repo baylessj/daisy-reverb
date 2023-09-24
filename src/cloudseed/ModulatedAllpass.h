@@ -36,10 +36,16 @@ class ModulatedAllpass {
   bool kinterpolation_enabled;
   bool kmodulation_enabled;
 
+  /**
+   * Params:
+   * sample_delay: in ms
+   * max_sample_delay: in ms
+   */
   ModulatedAllpass(int sample_delay, size_t max_sample_delay)
     : ksample_delay(sample_delay) {
+    (void)max_sample_delay;
     kinterpolation_enabled = true;
-    _delay_buffer_samples = MCU_CLOCK_RATE * max_sample_delay;
+    _delay_buffer_samples = (MCU_CLOCK_RATE / 1000.0) * max_sample_delay;
     _delay_buffer = sdramAllocate<float>(_delay_buffer_samples);
     _output = sdramAllocate<float>(BATCH_SIZE);
 
@@ -48,11 +54,6 @@ class ModulatedAllpass {
     kmod_rate = 0.0;
     kmod_amount = 0.0;
     modulate();
-  }
-
-  ~ModulatedAllpass() {
-    delete _delay_buffer;
-    delete _output;
   }
 
   inline float* getOutput() {

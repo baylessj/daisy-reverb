@@ -10,22 +10,20 @@
 
 #define MAX_DIFFUSER_STAGE_COUNT 2
 
-#define ALLPASS_DELAY 100 // delay length in ms
+#define ALLPASS_DELAY ((int)100) // delay length in ms
 
 namespace cloudSeed {
 class AllpassDiffuser {
   public:
   /**
    * Params:
-   * samplerate: how often the tick() function is called, in Hertz
    * delay_buffer_length: the maximum delay time, in milliseconds
    */
   AllpassDiffuser(size_t delay_buffer_length) {
     _seed_values = sdramAllocate<float>(MAX_DIFFUSER_STAGE_COUNT * 3);
-    auto delayBufferSize =
-      MCU_CLOCK_RATE * ((float)delay_buffer_length / 1000.0);
     for (int i = 0; i < MAX_DIFFUSER_STAGE_COUNT; i++) {
-      _filters[i] = new ModulatedAllpass(ALLPASS_DELAY, (int)delayBufferSize);
+      (void)delay_buffer_length;
+      _filters[i] = new ModulatedAllpass(ALLPASS_DELAY, delay_buffer_length);
     }
 
     _seed = 23456;

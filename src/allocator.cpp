@@ -2,7 +2,7 @@
 #include "daisy_petal.h"
 
 // This is used in the modified CloudSeed code for allocating
-// 48MB delay line memory to SDRAM (64MB available on Daisy)
+// 61MB delay line memory to SDRAM (64MB available on Daisy)
 #define CUSTOM_POOL_SIZE (61 * 1024 * 1024)
 DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
 size_t pool_index = 0;

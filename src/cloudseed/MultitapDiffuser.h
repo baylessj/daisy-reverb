@@ -48,11 +48,6 @@ class MultitapDiffuser {
     updateSeeds();
   }
 
-  ~MultitapDiffuser() {
-    delete _buffer;
-    delete _output;
-  }
-
   void setSeed(int seed) {
     _seed = seed;
     updateSeeds();

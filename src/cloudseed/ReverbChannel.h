@@ -82,9 +82,9 @@ class ReverbChannel {
     _low_pass.Init(MCU_CLOCK_RATE);
     _low_pass.SetFreq(DEFAULT_LOW_PASS_FREQ);
 
-    _temp_buffer = sdramAllocate<float>(BATCH_SIZE);
-    _line_out_buffer = sdramAllocate<float>(BATCH_SIZE);
-    _out_buffer = sdramAllocate<float>(BATCH_SIZE);
+    _temp_buffer = new float[BATCH_SIZE];
+    _line_out_buffer = new float[BATCH_SIZE];
+    _out_buffer = new float[BATCH_SIZE];
     _delay_line_seeds = sdramAllocate<float>(MAX_DELAY_LINES * 3);
   }
 

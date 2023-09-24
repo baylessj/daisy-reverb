@@ -39,11 +39,6 @@ class ModulatedDelay {
     modulate();
   }
 
-  ~ModulatedDelay() {
-    delete _delay_buffer;
-    delete _output;
-  }
-
   float* getOutput() {
     return _output;
   }

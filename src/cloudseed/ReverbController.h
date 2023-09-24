@@ -20,7 +20,6 @@ class ReverbController {
   private:
   ReverbChannel _channel;
   float _left_channel_in[BATCH_SIZE];
-  float _left_line_buffer[BATCH_SIZE];
   // TODO (baylessj): we have two places where parameters are stored currently,
   // leave these to be just stored in the channel?
   float _parameters[(int)Parameter::Count];

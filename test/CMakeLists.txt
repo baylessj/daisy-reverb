@@ -4,7 +4,8 @@ set(BINARY ${CMAKE_PROJECT_NAME}_tst)
 
 # file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.hpp *.cpp)
 set(TEST_SOURCES 
-    example.cpp)
+    example.cpp
+    main.cpp)
 
 include_directories(.)
 
