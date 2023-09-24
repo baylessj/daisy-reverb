@@ -38,12 +38,12 @@ class ReverbController {
       return (int)(P(Parameter::PreDelay) * 1000);
 
     case Parameter::HighPass:
-      return 20 + ValueTables::Get(P(Parameter::HighPass),
-                                   ValueTables::Response4Oct) *
+      return 20 + valueTables::Get(P(Parameter::HighPass),
+                                   valueTables::Response4Oct) *
                     980;
     case Parameter::LowPass:
-      return 400 + ValueTables::Get(P(Parameter::LowPass),
-                                    ValueTables::Response4Oct) *
+      return 400 + valueTables::Get(P(Parameter::LowPass),
+                                    valueTables::Response4Oct) *
                      19600;
 
     // Early
@@ -52,7 +52,7 @@ class ReverbController {
     case Parameter::TapLength:
       return (int)(P(Parameter::TapLength) * 500);
     case Parameter::TapGain:
-      return ValueTables::Get(P(Parameter::TapGain), ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::TapGain), valueTables::Response2Dec);
     case Parameter::TapDecay:
       return P(Parameter::TapDecay);
 
@@ -70,12 +70,12 @@ class ReverbController {
     case Parameter::LineCount:
       return 1 + (int)(P(Parameter::LineCount) * 11.999);
     case Parameter::LineDelay:
-      return (int)(20.0 + ValueTables::Get(P(Parameter::LineDelay),
-                                           ValueTables::Response2Dec) *
+      return (int)(20.0 + valueTables::Get(P(Parameter::LineDelay),
+                                           valueTables::Response2Dec) *
                             980);
     case Parameter::LineDecay:
-      return 0.05 + ValueTables::Get(P(Parameter::LineDecay),
-                                     ValueTables::Response3Dec) *
+      return 0.05 + valueTables::Get(P(Parameter::LineDecay),
+                                     valueTables::Response3Dec) *
                       59.95;
 
     case Parameter::LateDiffusionEnabled:
@@ -90,42 +90,42 @@ class ReverbController {
 
     // Frequency Response
     case Parameter::PostLowShelfGain:
-      return ValueTables::Get(P(Parameter::PostLowShelfGain),
-                              ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::PostLowShelfGain),
+                              valueTables::Response2Dec);
     case Parameter::PostLowShelfFrequency:
-      return 20 + ValueTables::Get(P(Parameter::PostLowShelfFrequency),
-                                   ValueTables::Response4Oct) *
+      return 20 + valueTables::Get(P(Parameter::PostLowShelfFrequency),
+                                   valueTables::Response4Oct) *
                     980;
     case Parameter::PostHighShelfGain:
-      return ValueTables::Get(P(Parameter::PostHighShelfGain),
-                              ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::PostHighShelfGain),
+                              valueTables::Response2Dec);
     case Parameter::PostHighShelfFrequency:
-      return 400 + ValueTables::Get(P(Parameter::PostHighShelfFrequency),
-                                    ValueTables::Response4Oct) *
+      return 400 + valueTables::Get(P(Parameter::PostHighShelfFrequency),
+                                    valueTables::Response4Oct) *
                      19600;
     case Parameter::PostCutoffFrequency:
-      return 400 + ValueTables::Get(P(Parameter::PostCutoffFrequency),
-                                    ValueTables::Response4Oct) *
+      return 400 + valueTables::Get(P(Parameter::PostCutoffFrequency),
+                                    valueTables::Response4Oct) *
                      19600;
 
     // Modulation
     case Parameter::EarlyDiffusionModAmount:
       return P(Parameter::EarlyDiffusionModAmount) * 2.5;
     case Parameter::EarlyDiffusionModRate:
-      return ValueTables::Get(P(Parameter::EarlyDiffusionModRate),
-                              ValueTables::Response2Dec) *
+      return valueTables::Get(P(Parameter::EarlyDiffusionModRate),
+                              valueTables::Response2Dec) *
              5;
     case Parameter::LineModAmount:
       return P(Parameter::LineModAmount) * 2.5;
     case Parameter::LineModRate:
-      return ValueTables::Get(P(Parameter::LineModRate),
-                              ValueTables::Response2Dec) *
+      return valueTables::Get(P(Parameter::LineModRate),
+                              valueTables::Response2Dec) *
              5;
     case Parameter::LateDiffusionModAmount:
       return P(Parameter::LateDiffusionModAmount) * 2.5;
     case Parameter::LateDiffusionModRate:
-      return ValueTables::Get(P(Parameter::LateDiffusionModRate),
-                              ValueTables::Response2Dec) *
+      return valueTables::Get(P(Parameter::LateDiffusionModRate),
+                              valueTables::Response2Dec) *
              5;
 
     // Seeds
@@ -143,15 +143,15 @@ class ReverbController {
       return P(Parameter::CrossSeed);
 
     case Parameter::DryOut:
-      return ValueTables::Get(P(Parameter::DryOut), ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::DryOut), valueTables::Response2Dec);
     case Parameter::PredelayOut:
-      return ValueTables::Get(P(Parameter::PredelayOut),
-                              ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::PredelayOut),
+                              valueTables::Response2Dec);
     case Parameter::EarlyOut:
-      return ValueTables::Get(P(Parameter::EarlyOut),
-                              ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::EarlyOut),
+                              valueTables::Response2Dec);
     case Parameter::MainOut:
-      return ValueTables::Get(P(Parameter::MainOut), ValueTables::Response2Dec);
+      return valueTables::Get(P(Parameter::MainOut), valueTables::Response2Dec);
 
     // Switches
     case Parameter::HiPassEnabled:

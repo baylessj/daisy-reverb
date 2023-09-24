@@ -40,7 +40,7 @@
 #include <memory>
 #include <vector>
 
-#include "ShaRandom.h"
+#include "sharandom.h"
 
 class SHA256 {
   protected:

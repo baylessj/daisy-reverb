@@ -9,7 +9,7 @@
 
 #define NUM_PRESETS 3
 
-#define PARAMETERS_LENGTH ((std::uint16_t)cloudSeed::Parameter::Count + 2)
+#define PARAMETERS_LENGTH ((std::uint16_t)cloudSeed::Parameter::Count + 3)
 
 /**
  * TODO: this is currently just storing in RAM, the presets will be lost on

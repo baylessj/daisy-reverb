@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <vector>
 
 #define BIQUAD_CONSTANT_LENGTH 3
@@ -19,7 +20,6 @@ class Biquad {
 
   private:
   float _samplerate;
-  float _gainDb;
   float _q;
   float a0, a1, a2, b0, b1, b2;
   float x1, x2, y, y1, y2;

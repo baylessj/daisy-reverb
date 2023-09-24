@@ -37,17 +37,27 @@ struct Parameter {
     (void)curve;
   }
 
-  float Process() {}
+  float Process() {
+    return 0.0f;
+  }
 };
 
 struct Switch {
-  float TimeHeldMs() {}
+  float TimeHeldMs() {
+    return 0.0f;
+  }
 
-  bool Pressed() {}
+  bool Pressed() {
+    return false;
+  }
 
-  bool RisingEdge() {}
+  bool RisingEdge() {
+    return false;
+  }
 
-  bool FallingEdge() {}
+  bool FallingEdge() {
+    return false;
+  }
 };
 
 struct Led {

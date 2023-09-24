@@ -4,27 +4,28 @@
 #include <cmath>
 
 namespace audioLib {
-float DSY_SDRAM_BSS ValueTables::Sqrt[TableSize];
-float DSY_SDRAM_BSS ValueTables::Sqrt3[TableSize];
-float DSY_SDRAM_BSS ValueTables::Pow1_5[TableSize];
-float DSY_SDRAM_BSS ValueTables::Pow2[TableSize];
-float DSY_SDRAM_BSS ValueTables::Pow3[TableSize];
-float DSY_SDRAM_BSS ValueTables::Pow4[TableSize];
-float DSY_SDRAM_BSS ValueTables::x2Pow3[TableSize];
+namespace valueTables {
+float DSY_SDRAM_BSS Sqrt[TableSize];
+float DSY_SDRAM_BSS Sqrt3[TableSize];
+float DSY_SDRAM_BSS Pow1_5[TableSize];
+float DSY_SDRAM_BSS Pow2[TableSize];
+float DSY_SDRAM_BSS Pow3[TableSize];
+float DSY_SDRAM_BSS Pow4[TableSize];
+float DSY_SDRAM_BSS x2Pow3[TableSize];
 
 // octave response. value float every step (2,3,4,5 or 6 steps)
-float DSY_SDRAM_BSS ValueTables::Response2Oct[TableSize];
-float DSY_SDRAM_BSS ValueTables::Response3Oct[TableSize];
-float DSY_SDRAM_BSS ValueTables::Response4Oct[TableSize];
-float DSY_SDRAM_BSS ValueTables::Response5Oct[TableSize];
-float DSY_SDRAM_BSS ValueTables::Response6Oct[TableSize];
+float DSY_SDRAM_BSS Response2Oct[TableSize];
+float DSY_SDRAM_BSS Response3Oct[TableSize];
+float DSY_SDRAM_BSS Response4Oct[TableSize];
+float DSY_SDRAM_BSS Response5Oct[TableSize];
+float DSY_SDRAM_BSS Response6Oct[TableSize];
 
 // decade response, value multiplies by 10 every step
-float DSY_SDRAM_BSS ValueTables::Response2Dec[TableSize];
-float DSY_SDRAM_BSS ValueTables::Response3Dec[TableSize];
-float DSY_SDRAM_BSS ValueTables::Response4Dec[TableSize];
+float DSY_SDRAM_BSS Response2Dec[TableSize];
+float DSY_SDRAM_BSS Response3Dec[TableSize];
+float DSY_SDRAM_BSS Response4Dec[TableSize];
 
-void ValueTables::Init() {
+void Init() {
   // Initialize tables
 
   for (int i = 0; i <= 4000; i++) {
@@ -78,15 +79,16 @@ void ValueTables::Init() {
   Response4Dec[0] = 0;
 }
 
-float ValueTables::Get(float index, float* table) {
+float Get(float index, float* table) {
   if (table == nullptr)
     return index;
 
   int idx = (int)(index * 4000.999);
 
   assert(idx >= 0);
-  assert(idx < audioLib::ValueTables::TableSize);
+  assert(idx < audioLib::valueTables::TableSize);
 
   return table[idx];
 }
+} // namespace valueTables
 } // namespace audioLib

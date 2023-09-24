@@ -141,7 +141,7 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
 int main(void) {
   hw.Init();
 
-  audioLib::ValueTables::Init();
+  audioLib::valueTables::Init();
 
   reverb.clearBuffers();
 
