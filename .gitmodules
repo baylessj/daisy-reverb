@@ -6,4 +6,4 @@
 	url = https://github.com/electro-smith/libdaisy
 [submodule "Terrarium"]
 	path = Terrarium
-	url = https://github.com/PedalPCB/Terrarium
+	url = https://github.com/baylessj/Terrarium.git
