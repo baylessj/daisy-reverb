@@ -90,6 +90,9 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   hw.ProcessAnalogControls();
   hw.ProcessDigitalControls();
 
+  // Benchmarking
+  auto controls_tick_start = hw.seed.system.GetTick();
+
   auto fsw_info = footswitch_controller.tick();
 
   if (fsw_info.advancePreset) {
@@ -124,6 +127,16 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
     setParameter(ki.first, ki.second);
   }
 
+  //-- Benchmarking
+  auto controls_time = hw.seed.system.GetTick() - controls_tick_start;
+  if (fsw_info.save) {
+    // set a breakpoint here to see how much longer the saving process takes
+    auto save_control_time = hw.seed.system.GetTick() - controls_tick_start;
+  }
+
+  auto reverb_tick_start = hw.seed.system.GetTick();
+  //--
+
   float mono_input[batch_size];
   memcpy(mono_input, in[0], batch_size);
 
@@ -135,6 +148,9 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   } else {
     memcpy(out[0], mono_input, batch_size);
   }
+
+  // Benchmarking
+  auto reverb_time = hw.seed.system.GetTick() - reverb_tick_start;
 }
 
 #ifndef DEBUG
