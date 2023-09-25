@@ -208,7 +208,7 @@ std::vector<unsigned char> sha256(unsigned char* input, int len) {
 
 namespace audioLib {
 namespace sharandom {
-void generate(long long seed, size_t count, float* out) {
+std::vector<float> generate(long long seed, size_t count) {
   std::vector<unsigned char> byteList;
   auto iterations = count * sizeof(unsigned int) / (256 / 8) + 1;
   auto byteArr = (unsigned char*)&seed;
@@ -222,11 +222,11 @@ void generate(long long seed, size_t count, float* out) {
 
   auto intArray = (unsigned int*)(&byteList[0]);
 
+  std::vector<float> out;
   for (size_t i = 0; i < count; i++) {
-    unsigned int val = intArray[i];
-    float doubleVal = val / (float)UINT_MAX;
-    out[i] = doubleVal;
+    out.push_back((intArray[i] / (float)UINT_MAX));
   }
+  return out;
 }
 } // namespace sharandom
 } // namespace audioLib

@@ -15,6 +15,35 @@
       "environment": [],
       "externalConsole": false,
       "MIMode": "lldb"
+    },
+    {
+      "configFiles": [
+        "interface/stlink.cfg",
+        "target/stm32h7x.cfg"
+      ],
+      "cwd": "${workspaceFolder}",
+      "debuggerArgs": [
+        "-d",
+        "${workspaceRoot}"
+      ],
+      "executable": "${workspaceRoot}/src/build/cloudseed.elf",
+      "interface": "swd",
+      "name": "Cortex Debug",
+      "openOCDLaunchCommands": [
+        "init",
+        "reset init"
+      ],
+      "preLaunchTask": "debug_and_program",
+      "preRestartCommands": [
+        "load",
+        "enable breakpoint",
+        "monitor reset"
+      ],
+      "request": "launch",
+      "servertype": "openocd",
+      "showDevDebugOutput": "parsed",
+      "svdFile": "${workspaceRoot}/.vscode/STM32H750x.svd",
+      "type": "cortex-debug"
     }
   ]
 }

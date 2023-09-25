@@ -4,6 +4,6 @@
 
 namespace audioLib {
 namespace sharandom {
-void generate(long long seed, size_t count, float* out);
+std::vector<float> generate(long long seed, size_t count);
 } // namespace sharandom
 } // namespace audioLib

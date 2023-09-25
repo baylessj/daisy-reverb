@@ -153,7 +153,7 @@ static void audioCallback(daisy::AudioHandle::InputBuffer in,
   auto reverb_time = hw.seed.system.GetTick() - reverb_tick_start;
 }
 
-#ifndef DEBUG
+#ifndef LOCAL
 int main(void) {
   hw.Init();
 

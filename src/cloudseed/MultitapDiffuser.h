@@ -37,6 +37,8 @@ class MultitapDiffuser {
     _buffer = sdramAllocate<float>(delay_buffer_size);
     _output = sdramAllocate<float>(BATCH_SIZE);
 
+    // TODO (baylessj): anything that would be initialized at program's start
+    // time, e.g. seeds and such, cannot be in SDRAM
     _tap_gains = sdramAllocate<float>(MAX_DIFFUSER_TAPS);
     _tap_positions = sdramAllocate<float>(MAX_DIFFUSER_TAPS);
     _tap_lengths = sdramAllocate<float>(MAX_DIFFUSER_TAPS);
@@ -149,8 +151,9 @@ class MultitapDiffuser {
   void updateSeeds() {
     // generate two sets of seeds, one for the tap lengths, one for the tap
     // gains
-    audioLib::sharandom::generate(
-      (long long)_seed, MAX_DIFFUSER_TAPS * 2, _seed_values);
+    auto seeds =
+      audioLib::sharandom::generate((long long)_seed, MAX_DIFFUSER_TAPS * 2);
+    std::copy(seeds.begin(), seeds.end(), _seed_values);
     updateTaps();
   }
 };

@@ -117,8 +117,9 @@ class AllpassDiffuser {
   }
 
   void updateSeeds() {
-    audioLib::sharandom::generate(
-      _seed, MAX_DIFFUSER_STAGE_COUNT * 3, _seed_values);
+    auto seeds =
+      audioLib::sharandom::generate(_seed, MAX_DIFFUSER_STAGE_COUNT * 3);
+    std::copy(seeds.begin(), seeds.end(), _seed_values);
     update();
   }
 

@@ -382,8 +382,9 @@ class ReverbChannel {
       _ms2Samples(_parameters[Parameter::LateDiffusionModAmount]);
     auto lateDiffusionModRate = _parameters[Parameter::LateDiffusionModRate];
 
-    audioLib::sharandom::generate(
-      kdelay_line_seed, MAX_DELAY_LINES * 3, _delay_line_seeds);
+    auto seeds =
+      audioLib::sharandom::generate(kdelay_line_seed, MAX_DELAY_LINES * 3);
+    std::copy(seeds.begin(), seeds.end(), _delay_line_seeds);
     for (size_t i = 0; i < MAX_DELAY_LINES; i++) {
       auto modAmount =
         lineModAmount * (0.7 + 0.3 * _delay_line_seeds[i + MAX_DELAY_LINES]);
