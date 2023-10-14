@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 
 #include "../allocator.hpp"
 #include "../constants.h"
+#include "daisy.h"
 
 // Number of samples before updating the modulation
 #define ALLPASS_MODULATION_UPDATE_RATE 8
@@ -16,7 +18,7 @@ class ModulatedAllpass {
 
   private:
   float* _delay_buffer;
-  float* _output;
+  float _output[BATCH_SIZE];
   size_t _index;
   unsigned int _samples_processed;
   size_t _delay_buffer_samples;
@@ -47,7 +49,6 @@ class ModulatedAllpass {
     kinterpolation_enabled = true;
     _delay_buffer_samples = (MCU_CLOCK_RATE / 1000.0) * max_sample_delay;
     _delay_buffer = sdramAllocate<float>(_delay_buffer_samples);
-    _output = sdramAllocate<float>(BATCH_SIZE);
 
     _index = _delay_buffer_samples - 1;
     _mod_phase = 0.01 + 0.98 * std::rand() / (float)RAND_MAX;
@@ -61,8 +62,8 @@ class ModulatedAllpass {
   }
 
   void clearBuffers() {
-    memset(_delay_buffer, 0.0f, _delay_buffer_samples);
-    memset(_output, 0.0f, BATCH_SIZE);
+    memset(_delay_buffer, 0.0f, _delay_buffer_samples * sizeof(float));
+    memset(_output, 0.0f, BATCH_SIZE * sizeof(float));
   }
 
   void tick(float* input) {

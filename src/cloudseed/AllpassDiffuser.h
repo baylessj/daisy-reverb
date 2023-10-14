@@ -20,7 +20,6 @@ class AllpassDiffuser {
    * delay_buffer_length: the maximum delay time, in milliseconds
    */
   AllpassDiffuser(size_t delay_buffer_length) {
-    _seed_values = sdramAllocate<float>(MAX_DIFFUSER_STAGE_COUNT * 3);
     for (int i = 0; i < MAX_DIFFUSER_STAGE_COUNT; i++) {
       (void)delay_buffer_length;
       _filters[i] = new ModulatedAllpass(ALLPASS_DELAY, delay_buffer_length);
@@ -129,7 +128,7 @@ class AllpassDiffuser {
   int _delay;
   float _mod_rate;
 
-  float* _seed_values;
+  float _seed_values[MAX_DIFFUSER_STAGE_COUNT * 3];
   int _seed;
   float _cross_seed;
 

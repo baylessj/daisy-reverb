@@ -39,7 +39,7 @@ static float DEFAULT_LOW_PASS_FREQ = 20000.0f;
 namespace cloudSeed {
 class ReverbChannel {
   private:
-  std::map<Parameter, float> _parameters;
+  float _parameters[(int)Parameter::Count];
   int _MCU_CLOCK_RATE;
 
   ModulatedDelay _pre_delay;
@@ -73,7 +73,7 @@ class ReverbChannel {
       _lines[i] = new DelayLine();
 
     for (auto value = 0; value < (int)Parameter::Count; value++)
-      _parameters[static_cast<Parameter>(value)] = 0.0;
+      _parameters[value] = 0.0;
 
     kline_count = MAX_DELAY_LINES;
     _diffuser.setInterpolationEnabled(true);
@@ -106,7 +106,7 @@ class ReverbChannel {
   }
 
   void setParameter(Parameter para, float value) {
-    _parameters[para] = value;
+    _parameters[(int)para] = value;
 
     switch (para) {
     case Parameter::PreDelay:
@@ -371,16 +371,19 @@ class ReverbChannel {
   }
 
   void _updateLines() {
-    auto lineDelaySamples = (int)_ms2Samples(_parameters[Parameter::LineDelay]);
-    auto lineDecayMillis = _parameters[Parameter::LineDecay] * 1000;
+    auto lineDelaySamples =
+      (int)_ms2Samples(_parameters[(int)Parameter::LineDelay]);
+    auto lineDecayMillis = _parameters[(int)Parameter::LineDecay] * 1000;
     auto lineDecaySamples = _ms2Samples(lineDecayMillis);
 
-    auto lineModAmount = _ms2Samples(_parameters[Parameter::LineModAmount]);
-    auto lineModRate = _parameters[Parameter::LineModRate];
+    auto lineModAmount =
+      _ms2Samples(_parameters[(int)Parameter::LineModAmount]);
+    auto lineModRate = _parameters[(int)Parameter::LineModRate];
 
     auto lateDiffusionModAmount =
-      _ms2Samples(_parameters[Parameter::LateDiffusionModAmount]);
-    auto lateDiffusionModRate = _parameters[Parameter::LateDiffusionModRate];
+      _ms2Samples(_parameters[(int)Parameter::LateDiffusionModAmount]);
+    auto lateDiffusionModRate =
+      _parameters[(int)Parameter::LateDiffusionModRate];
 
     auto seeds =
       audioLib::sharandom::generate(kdelay_line_seed, MAX_DELAY_LINES * 3);

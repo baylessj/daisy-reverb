@@ -19,10 +19,10 @@ class MultitapDiffuser {
 
   int _buffer_index;
 
-  float* _tap_gains;
-  float* _tap_positions;
-  float* _tap_lengths;
-  float* _seed_values;
+  float _tap_gains[MAX_DIFFUSER_TAPS];
+  float _tap_positions[MAX_DIFFUSER_TAPS];
+  float _tap_lengths[MAX_DIFFUSER_TAPS];
+  float _seed_values[MAX_DIFFUSER_TAPS * 2];
 
   int _seed;
 
@@ -36,13 +36,6 @@ class MultitapDiffuser {
     : _delay_buffer_size(delay_buffer_size) {
     _buffer = sdramAllocate<float>(delay_buffer_size);
     _output = sdramAllocate<float>(BATCH_SIZE);
-
-    // TODO (baylessj): anything that would be initialized at program's start
-    // time, e.g. seeds and such, cannot be in SDRAM
-    _tap_gains = sdramAllocate<float>(MAX_DIFFUSER_TAPS);
-    _tap_positions = sdramAllocate<float>(MAX_DIFFUSER_TAPS);
-    _tap_lengths = sdramAllocate<float>(MAX_DIFFUSER_TAPS);
-    _seed_values = sdramAllocate<float>(MAX_DIFFUSER_TAPS * 2);
 
     _buffer_index = 0;
     kgain = 1.0;
